@@ -1,0 +1,74 @@
+body {
+	width: 80%;
+	margin: 0 auto;
+	font-family: 'Open Sans', sans-serif;
+}
+
+
+
+/*************************
+Header
+*************************/
+header {
+	background: #FA5A5A;
+	color: #ffffff;
+	padding: 10px;
+	margin: 0 0 40px;
+	display: inline-block;
+	width: 100%;
+	border-bottom: 5px solid #D55149;
+}
+header h1 {
+	font-size: 1.9em;
+	font-family: 'Changa One', sans-serif;
+	font-weight: normal;
+}
+
+header p {
+	font-size: .9em;
+}
+
+.header-container {
+	float: left;
+}
+
+nav {
+	float: right;
+	font-family: 'Changa One', sans-serif;
+	background: #D55149;
+	margin-top: 70px;
+	width: 300px;
+}
+
+nav ul {
+	list-style-type: none;
+	text-align: center;
+	padding: 0;
+	margin: 0;
+}
+
+nav li {
+	display: inline-block;
+	padding: 16px 0;
+	margin: 0;
+	width: 50%;
+	float: left;
+}
+
+nav li.selected, nav li:hover {
+	background: #A55149;
+}
+
+nav a {
+	text-decoration: none;
+	color: #FFF;
+}
+
+
+/*************************
+Footer
+*************************/
+footer {
+	text-align: center;
+	margin-top: 40px;
+}
