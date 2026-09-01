@@ -1,0 +1,44 @@
+---
+/**
+ * Eyebrow — a small mono label preceded by a tick. The tick ties every
+ * label back to the ruler that structures the page.
+ */
+interface Props {
+  tone?: 'muted' | 'signal' | 'flow';
+  tick?: boolean;
+  class?: string;
+}
+
+const { tone = 'muted', tick = true, class: className } = Astro.props;
+---
+
+<span class:list={['eyebrow', `eyebrow--${tone}`, className]} data-tick={tick}>
+  <slot />
+</span>
+
+<style>
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--wt-medium);
+    font-stretch: var(--wd-label);
+    letter-spacing: var(--tr-label);
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--text-muted);
+  }
+
+  .eyebrow[data-tick='true']::before {
+    content: '';
+    width: 10px;
+    height: var(--hairline);
+    background-color: currentColor;
+    opacity: 0.7;
+  }
+
+  .eyebrow--signal { color: var(--signal); }
+  .eyebrow--flow   { color: var(--flow); }
+</style>

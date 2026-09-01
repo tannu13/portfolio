@@ -1,0 +1,39 @@
+---
+/** Swatch — one token, its value, and what it is for. */
+interface Props {
+  token: string;
+  role?: string;
+  border?: boolean;
+}
+
+const { token, role, border = false } = Astro.props;
+---
+
+<div class="swatch">
+  <div
+    class:list={['swatch__chip', border && 'swatch__chip--bordered']}
+    style={`background: var(${token})`}
+  >
+  </div>
+  <div class="swatch__meta">
+    <span class="swatch__token u-data">{token}</span>
+    {role && <span class="swatch__role">{role}</span>}
+  </div>
+</div>
+
+<style>
+  .swatch { display: flex; flex-direction: column; gap: var(--space-2); }
+
+  .swatch__chip {
+    height: 3.25rem;
+    border-radius: var(--r-sm);
+    border: var(--hairline) solid var(--border-hairline);
+  }
+
+  .swatch__chip--bordered { border-color: var(--border-contrast); }
+
+  .swatch__meta { display: flex; flex-direction: column; gap: 2px; }
+
+  .swatch__token { font-size: var(--fs-micro); color: var(--text-primary); }
+  .swatch__role { font-size: var(--fs-micro); color: var(--text-muted); line-height: 1.4; }
+</style>

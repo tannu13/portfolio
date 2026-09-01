@@ -1,0 +1,49 @@
+---
+/**
+ * Tag — a technology or concept marker. Neutral by default: the
+ * palette encodes system roles, not vendor identities, so a stack
+ * list stays monochrome and readable.
+ */
+interface Props {
+  tone?: 'neutral' | 'signal' | 'flow' | 'caution';
+  variant?: 'outline' | 'plain';
+  class?: string;
+}
+
+const { tone = 'neutral', variant = 'outline', class: className } = Astro.props;
+---
+
+<span class:list={['tag', `tag--${tone}`, `tag--${variant}`, className]}>
+  <slot />
+</span>
+
+<style>
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 1.625rem;
+    padding-inline: var(--space-2);
+    border-radius: var(--r-xs);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    font-weight: var(--wt-medium);
+    font-stretch: var(--wd-label);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    transition: color var(--dur-2) var(--ease-standard),
+                border-color var(--dur-2) var(--ease-standard);
+  }
+
+  .tag--outline {
+    border: var(--hairline) solid var(--border-hairline);
+    background-color: var(--surface-raised);
+  }
+
+  .tag--plain { padding-inline: 0; margin-inline-end: var(--space-3); }
+
+  .tag--signal  { color: var(--signal); border-color: var(--signal-edge); background-color: var(--signal-soft); }
+  .tag--flow    { color: var(--flow);   border-color: var(--flow-edge);   background-color: var(--flow-soft); }
+  .tag--caution { color: var(--caution); border-color: var(--caution-edge); background-color: var(--caution-soft); }
+</style>

@@ -1,0 +1,111 @@
+---
+import TraceLane from '../molecules/TraceLane.astro';
+import MetricReadout from '../molecules/MetricReadout.astro';
+
+/**
+ * ExperienceEntry — a span on the career trace plus the two or three
+ * operations worth reading. Deliberately quieter than a ProjectBlock:
+ * hairlines, no fill, no card.
+ */
+interface Props {
+  company: string;
+  role: string;
+  location?: string;
+  period: string;
+  start: number;
+  end: number;
+  stories: string[];
+  metric?: { value: string; unit?: string; label: string };
+  tone?: 'signal' | 'flow' | 'neutral';
+  current?: boolean;
+  class?: string;
+}
+
+const {
+  company,
+  role,
+  location,
+  period,
+  start,
+  end,
+  stories,
+  metric,
+  tone = 'neutral',
+  current = false,
+  class: className,
+} = Astro.props;
+---
+
+<article class:list={['xp', className]}>
+  <TraceLane
+    label={company}
+    role={role}
+    meta={location}
+    duration={period}
+    start={start}
+    end={end}
+    tone={tone}
+    current={current}
+  />
+
+  <div class="xp__body">
+    {metric && (
+      <MetricReadout
+        value={metric.value}
+        unit={metric.unit}
+        label={metric.label}
+        tone="signal"
+        size="sm"
+        class="xp__metric"
+      />
+    )}
+    <ul class="xp__stories">
+      {stories.map((story) => <li class="xp__story">{story}</li>)}
+    </ul>
+    <div class="xp__extra"><slot /></div>
+  </div>
+</article>
+
+<style>
+  .xp__body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+  }
+
+  .xp__stories {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--measure);
+  }
+
+  .xp__story {
+    position: relative;
+    padding-left: var(--space-4);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+  }
+
+  /* a tick, not a bullet — the same mark used on the rulers */
+  .xp__story::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 7px;
+    height: var(--hairline);
+    background-color: var(--border-contrast);
+  }
+
+  @media (min-width: 52rem) {
+    .xp__body { grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); gap: var(--space-5); }
+    .xp__metric { grid-column: 1; grid-row: 1; align-self: start; }
+    .xp__stories { grid-column: 2; grid-row: 1; }
+    .xp__extra { grid-column: 2; }
+  }
+</style>

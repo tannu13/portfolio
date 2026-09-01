@@ -1,0 +1,114 @@
+---
+import Icon from '../atoms/Icon.astro';
+
+/**
+ * Disclosure — progressive depth. Built on <details> so the content is
+ * in the document (and findable by search) whether or not it is open,
+ * and works with JavaScript disabled.
+ */
+interface Props {
+  summary: string;
+  hint?: string;
+  open?: boolean;
+  tone?: 'default' | 'quiet';
+  class?: string;
+}
+
+const { summary, hint, open = false, tone = 'default', class: className } = Astro.props;
+---
+
+<details class:list={['disc', `disc--${tone}`, className]} open={open}>
+  <summary class="disc__summary">
+    <span class="disc__marker" aria-hidden="true">
+      <Icon name="plus" size={14} class="disc__plus" />
+      <Icon name="minus" size={14} class="disc__minus" />
+    </span>
+    <span class="disc__text u-label">{summary}</span>
+    {hint && <span class="disc__hint u-label">{hint}</span>}
+  </summary>
+  <div class="disc__body">
+    <div class="disc__inner"><slot /></div>
+  </div>
+</details>
+
+<style>
+  .disc {
+    border-top: var(--hairline) solid var(--border-hairline);
+    border-bottom: var(--hairline) solid var(--border-hairline);
+  }
+
+  .disc + .disc { border-top: none; }
+
+  .disc__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    cursor: pointer;
+    list-style: none;
+    color: var(--text-primary);
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .disc__summary::-webkit-details-marker { display: none; }
+  .disc__summary:hover { color: var(--signal); }
+
+  .disc__marker {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: var(--hairline) solid var(--border-strong);
+    border-radius: var(--r-xs);
+    color: var(--text-secondary);
+    transition: border-color var(--dur-2) var(--ease-standard),
+                color var(--dur-2) var(--ease-standard);
+  }
+
+  .disc__summary:hover .disc__marker { border-color: var(--signal); color: var(--signal); }
+
+  .disc__plus, .disc__minus { grid-area: 1 / 1; }
+
+  /* The marker turns as it changes sign — the one bit of rotation in
+     the system, and it tracks the state it controls. */
+  .disc__marker :global(.icon) {
+    transition: transform var(--dur-3) var(--ease-standard);
+  }
+  .disc[open] .disc__marker :global(.icon) { transform: rotate(90deg); }
+  .disc__minus { opacity: 0; }
+  .disc[open] .disc__plus { opacity: 0; }
+  .disc[open] .disc__minus { opacity: 1; }
+
+  .disc__hint { margin-left: auto; color: var(--text-muted); }
+
+  .disc--quiet .disc__text { text-transform: none; letter-spacing: 0; font-family: var(--font-sans); font-size: var(--fs-body); }
+
+  /* Opens on a height transition rather than a jump. */
+  .disc__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur-3) var(--ease-entrance);
+  }
+
+  .disc[open] .disc__body { grid-template-rows: 1fr; }
+
+  .disc__inner { overflow: hidden; }
+
+  .disc[open] .disc__inner { padding-bottom: var(--space-5); }
+
+  /* Where the browser can animate the details content box directly,
+     use it: the grid trick above only animates the opening. */
+  @supports selector(::details-content) {
+    .disc__body { display: block; }
+
+    .disc::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size var(--dur-3) var(--ease-entrance),
+        content-visibility var(--dur-3) allow-discrete;
+    }
+
+    .disc[open]::details-content { block-size: auto; }
+  }
+</style>

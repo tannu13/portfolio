@@ -1,0 +1,22 @@
+---
+import Section from '../templates/Section.astro';
+import ContactBlock from '../organisms/ContactBlock.astro';
+import { site } from '../../data/site';
+---
+
+<Section
+  id="contact"
+  eyebrow="Contact"
+  title={site.contactPrompt}
+  tone="raised"
+>
+  <ContactBlock
+    prompt="Best reached by email. I read everything; I reply to anything with a real problem in it."
+    email={site.email}
+    links={[
+      { label: 'GitHub', value: site.githubHandle, href: site.githubUrl, icon: 'github', external: true },
+      { label: 'LinkedIn', value: site.linkedinHandle, href: site.linkedinUrl, icon: 'linkedin', external: true },
+      { label: 'Resume', value: 'PDF', href: site.resumeUrl, icon: 'download' },
+    ]}
+  />
+</Section>

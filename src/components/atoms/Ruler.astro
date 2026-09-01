@@ -1,0 +1,38 @@
+---
+/**
+ * Ruler — the structural signature. A measurement axis used as the
+ * section divider, with an optional stamp sitting on the scale.
+ */
+interface Props {
+  label?: string;
+  /** Which end of the scale the stamp sits on. */
+  align?: 'start' | 'end';
+  class?: string;
+}
+
+const { label, align = 'end', class: className } = Astro.props;
+---
+
+<div class:list={['ruler', className]} data-align={align} role="presentation">
+  <div class="u-ruler ruler__scale"></div>
+  {label && <span class="ruler__stamp u-label">{label}</span>}
+</div>
+
+<style>
+  .ruler {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .ruler[data-align='start'] { flex-direction: row-reverse; }
+
+  .ruler__scale { flex: 1; }
+
+  .ruler__stamp {
+    flex: none;
+    margin-top: -0.35em;
+    color: var(--text-muted);
+  }
+</style>

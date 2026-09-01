@@ -1,0 +1,524 @@
+---
+import ArchNode from '../atoms/ArchNode.astro';
+import Eyebrow from '../atoms/Eyebrow.astro';
+import type { DiagramEdge, DiagramStage, EdgeMode } from '../../data/types';
+
+/**
+ * ArchitectureDiagram — first-class content, not an illustration.
+ *
+ * Nodes are laid out in stages (columns on wide screens, rows on
+ * narrow ones). Connections are measured from the real DOM after
+ * layout, so the same diagram data reflows for mobile instead of
+ * being scaled down until unreadable.
+ *
+ * Reading the diagram:
+ *   border style → what a component is   (see ArchNode)
+ *   line colour  → how data moves        (sync / async / degraded)
+ *   moving dash  → a live path carrying events
+ *
+ * On first sight the diagram assembles itself in the order a reader
+ * would build it: components appear stage by stage, connections draw
+ * along their path, and only then do events start flowing. It plays
+ * once. Reduced-motion visitors get the finished diagram immediately.
+ */
+interface Props {
+  caption?: string;
+  stages: DiagramStage[];
+  edges: DiagramEdge[];
+  legend?: boolean;
+  class?: string;
+}
+
+const { caption, stages, edges, legend = true, class: className } = Astro.props;
+const modes: EdgeMode[] = ['sync', 'async', 'degraded'];
+const modeCopy: Record<EdgeMode, string> = {
+  sync: 'Request / response',
+  async: 'Event stream',
+  degraded: 'Retry / failure path',
+};
+const usedModes = modes.filter((m) => edges.some((e) => (e.mode ?? 'sync') === m));
+---
+
+<figure class:list={['arch', className]} data-arch>
+  <div class="arch__frame">
+    <div class="arch__canvas" data-arch-canvas>
+      <svg class="arch__wires" data-arch-wires aria-hidden="true">
+        <defs>
+          {
+            modes.map((mode) => (
+              <marker
+                id={`arrow-${mode}`}
+                markerWidth="7"
+                markerHeight="7"
+                refX="6"
+                refY="3.5"
+                orient="auto"
+              >
+                <path d="M0 0.6 L6.2 3.5 L0 6.4 Z" class={`arch__head arch__head--${mode}`} />
+              </marker>
+            ))
+          }
+        </defs>
+      </svg>
+
+      {
+        stages.map((stage) => (
+          <div class="arch__stage">
+            {stage.label && <span class="arch__stage-label u-label">{stage.label}</span>}
+            <div class="arch__stack">
+              {stage.nodes.map((node) => (
+                <ArchNode id={node.id} label={node.label} sub={node.sub} kind={node.kind} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <script type="application/json" data-arch-edges set:html={JSON.stringify(edges)} />
+  </div>
+
+  {
+    (legend && usedModes.length > 0) && (
+      <div class="arch__legend">
+        {usedModes.map((mode) => (
+          <span class="arch__legend-item">
+            <span class={`arch__legend-line arch__legend-line--${mode}`} />
+            <span class="u-label arch__legend-text">{modeCopy[mode]}</span>
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  {caption && <figcaption class="arch__caption"><Eyebrow>Diagram</Eyebrow><span>{caption}</span></figcaption>}
+</figure>
+
+<style>
+  .arch { margin: 0; }
+
+  .arch__frame {
+    position: relative;
+    padding: var(--space-5);
+    background-color: var(--surface-sunken);
+    border: var(--hairline) solid var(--border-hairline);
+    border-radius: var(--r-md);
+    /* a faint 4px field: the grid every measurement snaps to */
+    background-image:
+      linear-gradient(to right, var(--border-hairline) 0 1px, transparent 1px 100%),
+      linear-gradient(to bottom, var(--border-hairline) 0 1px, transparent 1px 100%);
+    background-size: 32px 32px, 32px 32px;
+    overflow-x: auto;
+  }
+
+  .arch__canvas {
+    position: relative;
+    display: grid;
+    grid-auto-flow: row;
+    gap: var(--space-6);
+  }
+
+  .arch__wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-diagram-edge);
+    pointer-events: none;
+  }
+
+  .arch__stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .arch__stage-label { color: var(--text-muted); }
+
+  .arch__stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    justify-content: center;
+    height: 100%;
+  }
+
+  @media (min-width: 52rem) {
+    .arch__canvas {
+      grid-auto-flow: column;
+      /* Stages share the width evenly and only start scrolling once a
+         node would be squeezed below its floor. */
+      grid-auto-columns: minmax(var(--node-min, 8.25rem), 1fr);
+      gap: var(--arch-gap, clamp(var(--space-5), 3vw, var(--space-7)));
+    }
+  }
+
+  /* --- entrance ---------------------------------------------------- */
+  /* Components arrive stage by stage. */
+  :global([data-js]) .arch__canvas :global(.node) {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity var(--dur-4) var(--ease-entrance),
+      transform var(--dur-4) var(--ease-entrance),
+      border-color var(--dur-2) var(--ease-standard),
+      box-shadow var(--dur-2) var(--ease-standard);
+    transition-delay: var(--node-delay, 0ms);
+  }
+
+  .arch[data-drawn] .arch__canvas :global(.node) {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* --- wires ------------------------------------------------------ */
+  :global(.arch__wire) {
+    fill: none;
+    stroke-width: 1.25;
+    transition: opacity var(--dur-2) var(--ease-standard),
+                stroke-width var(--dur-2) var(--ease-standard);
+  }
+
+  /* Connections draw along their own path once the components they
+     join have landed. Dashed failure paths fade in instead — their
+     dash pattern is information, so it cannot double as a wipe. */
+  :global([data-js] .arch__wire) {
+    opacity: 0;
+    stroke-dashoffset: var(--len, 0px);
+  }
+
+  :global([data-js] .arch[data-drawn] .arch__wire) {
+    opacity: 1;
+    stroke-dashoffset: 0;
+    transition:
+      opacity var(--dur-2) var(--ease-standard) var(--wire-delay, 0ms),
+      stroke-dashoffset 620ms var(--ease-standard) var(--wire-delay, 0ms),
+      stroke-width var(--dur-2) var(--ease-standard);
+  }
+  :global(.arch__wire--sync)     { stroke: var(--flow-edge); }
+  :global(.arch__wire--async)    { stroke: var(--signal-edge); }
+  :global(.arch__wire--degraded) { stroke: var(--caution-edge); stroke-dasharray: 4 4; }
+
+  :global(.arch__wire[data-active]) { stroke-width: 2; }
+  :global(.arch__wire--sync[data-active])     { stroke: var(--flow); }
+  :global(.arch__wire--async[data-active])    { stroke: var(--signal); }
+  :global(.arch__wire--degraded[data-active]) { stroke: var(--caution); }
+  :global(.arch__wire[data-dimmed]) { opacity: 0.18; }
+
+  .arch__head { fill: var(--border-contrast); }
+  .arch__head--sync     { fill: var(--flow); }
+  .arch__head--async    { fill: var(--signal); }
+  .arch__head--degraded { fill: var(--caution); }
+
+  /* the packet: a short dash walking the wire, one event in flight */
+  :global(.arch__packet) {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 10 var(--len, 400px);
+    stroke-dashoffset: calc(var(--len, 400px) + 10px);
+    opacity: 0;
+  }
+  :global(.arch__packet--sync)     { stroke: var(--flow); }
+  :global(.arch__packet--async)    { stroke: var(--signal); }
+  :global(.arch__packet--degraded) { stroke: var(--caution); }
+
+  /* Events only start moving once the diagram has finished drawing,
+     and stop again whenever it leaves the screen. */
+  :global([data-inview][data-flow] .arch__packet) {
+    opacity: 1;
+    animation: arch-packet var(--dur-flow) linear infinite;
+    animation-delay: var(--delay, 0ms);
+  }
+  :global([data-inview][data-flow] .arch__packet[data-dimmed]) { opacity: 0.15; }
+
+  @keyframes arch-packet {
+    from { stroke-dashoffset: calc(var(--len, 400px) + 10px); }
+    to   { stroke-dashoffset: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global([data-inview][data-flow] .arch__packet) { animation: none; opacity: 0; }
+
+    :global([data-js]) .arch__canvas :global(.node) { opacity: 1; transform: none; }
+    :global([data-js] .arch__wire) { opacity: 1; stroke-dashoffset: 0; }
+  }
+
+  /* --- legend / caption ------------------------------------------- */
+  .arch__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-4);
+  }
+
+  .arch__legend-item { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+  .arch__legend-line { width: 18px; height: 2px; border-radius: var(--r-pill); }
+  .arch__legend-line--sync  { background-color: var(--flow); }
+  .arch__legend-line--async { background-color: var(--signal); }
+  .arch__legend-line--degraded {
+    background-image: repeating-linear-gradient(
+      to right, var(--caution) 0 4px, transparent 4px 8px);
+  }
+
+  .arch__legend-text { color: var(--text-muted); }
+
+  .arch__caption {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    max-width: var(--measure);
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+</style>
+
+<script>
+  type Edge = {
+    from: string;
+    to: string;
+    mode?: 'sync' | 'async' | 'degraded';
+    animated?: boolean;
+  };
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const RADIUS = 10;
+
+  /** Orthogonal connector with rounded elbows, routed on the axis that
+   *  matches how the two nodes actually ended up laid out. */
+  function connector(
+    a: DOMRect,
+    b: DOMRect,
+    origin: DOMRect
+  ): string {
+    const A = { x: a.left - origin.left, y: a.top - origin.top, w: a.width, h: a.height };
+    const B = { x: b.left - origin.left, y: b.top - origin.top, w: b.width, h: b.height };
+
+    const horizontal = B.x >= A.x + A.w - 4 || A.x >= B.x + B.w - 4;
+
+    if (horizontal) {
+      const forward = B.x >= A.x + A.w - 4;
+      const sx = forward ? A.x + A.w : A.x;
+      const ex = forward ? B.x : B.x + B.w;
+      const sy = A.y + A.h / 2;
+      const ey = B.y + B.h / 2;
+      if (Math.abs(ey - sy) < 2) return `M ${sx} ${sy} L ${ex} ${ey}`;
+      const mx = (sx + ex) / 2;
+      const dx = Math.sign(ex - sx) || 1;
+      const dy = Math.sign(ey - sy) || 1;
+      const r = Math.min(RADIUS, Math.abs(ex - sx) / 2, Math.abs(ey - sy) / 2);
+      return [
+        `M ${sx} ${sy}`,
+        `L ${mx - r * dx} ${sy}`,
+        `Q ${mx} ${sy} ${mx} ${sy + r * dy}`,
+        `L ${mx} ${ey - r * dy}`,
+        `Q ${mx} ${ey} ${mx + r * dx} ${ey}`,
+        `L ${ex} ${ey}`,
+      ].join(' ');
+    }
+
+    const downward = B.y >= A.y + A.h - 4;
+    const sy = downward ? A.y + A.h : A.y;
+    const ey = downward ? B.y : B.y + B.h;
+    const sx = A.x + A.w / 2;
+    const ex = B.x + B.w / 2;
+    if (Math.abs(ex - sx) < 2) return `M ${sx} ${sy} L ${ex} ${ey}`;
+    const my = (sy + ey) / 2;
+    const dy = Math.sign(ey - sy) || 1;
+    const dx = Math.sign(ex - sx) || 1;
+    const r = Math.min(RADIUS, Math.abs(ey - sy) / 2, Math.abs(ex - sx) / 2);
+    return [
+      `M ${sx} ${sy}`,
+      `L ${sx} ${my - r * dy}`,
+      `Q ${sx} ${my} ${sx + r * dx} ${my}`,
+      `L ${ex - r * dx} ${my}`,
+      `Q ${ex} ${my} ${ex} ${my + r * dy}`,
+      `L ${ex} ${ey}`,
+    ].join(' ');
+  }
+
+  function setupDiagram(root: HTMLElement) {
+    const canvas = root.querySelector<HTMLElement>('[data-arch-canvas]');
+    const svg = root.querySelector<SVGSVGElement>('[data-arch-wires]');
+    const data = root.querySelector<HTMLScriptElement>('[data-arch-edges]');
+    if (!canvas || !svg || !data) return;
+
+    let edges: Edge[] = [];
+    try {
+      edges = JSON.parse(data.textContent || '[]');
+    } catch {
+      return;
+    }
+
+    const nodeEl = (id: string) => canvas.querySelector<HTMLElement>(`[data-node="${id}"]`);
+
+    // One wire, plus an optional packet, per edge — created once.
+    const wires = edges.map((edge, i) => {
+      const mode = edge.mode ?? 'sync';
+      const wire = document.createElementNS(SVG_NS, 'path');
+      wire.setAttribute('class', `arch__wire arch__wire--${mode}`);
+      wire.setAttribute('marker-end', `url(#arrow-${mode})`);
+      wire.style.setProperty('--wire-delay', `${300 + i * 55}ms`);
+      svg.appendChild(wire);
+
+      let packet: SVGPathElement | null = null;
+      if (edge.animated) {
+        packet = document.createElementNS(SVG_NS, 'path');
+        packet.setAttribute('class', `arch__packet arch__packet--${mode}`);
+        packet.style.setProperty('--delay', `${i * 260}ms`);
+        svg.appendChild(packet);
+      }
+      return { edge, wire, packet };
+    });
+
+    let lastW = 0;
+    let lastH = 0;
+    let frame = 0;
+
+    const draw = (force = false) => {
+      const origin = canvas.getBoundingClientRect();
+      if (!force && Math.abs(origin.width - lastW) < 1 && Math.abs(origin.height - lastH) < 1) {
+        return;
+      }
+      lastW = origin.width;
+      lastH = origin.height;
+      svg.setAttribute('viewBox', `0 0 ${origin.width} ${origin.height}`);
+      for (const { edge, wire, packet } of wires) {
+        const from = nodeEl(edge.from);
+        const to = nodeEl(edge.to);
+        if (!from || !to) continue;
+        const d = connector(from.getBoundingClientRect(), to.getBoundingClientRect(), origin);
+        wire.setAttribute('d', d);
+        // Solid wires are drawn by retracting their own dash; dashed
+        // ones keep the pattern that carries their meaning.
+        if ((edge.mode ?? 'sync') !== 'degraded') {
+          const len = wire.getTotalLength();
+          wire.style.setProperty('--len', `${len}px`);
+          wire.style.strokeDasharray = `${len}px`;
+        }
+        if (packet) {
+          packet.setAttribute('d', d);
+          packet.style.setProperty('--len', `${packet.getTotalLength()}px`);
+        }
+      }
+    };
+
+    // Hover or focus a node: show only what it touches.
+    const highlight = (id: string | null) => {
+      const nodes = canvas.querySelectorAll<HTMLElement>('[data-node]');
+      if (!id) {
+        nodes.forEach((n) => {
+          n.removeAttribute('data-active');
+          n.removeAttribute('data-related');
+          n.removeAttribute('data-dimmed');
+        });
+        wires.forEach(({ wire, packet }) => {
+          wire.removeAttribute('data-active');
+          wire.removeAttribute('data-dimmed');
+          packet?.removeAttribute('data-dimmed');
+        });
+        return;
+      }
+
+      const related = new Set<string>();
+      for (const { edge } of wires) {
+        if (edge.from === id) related.add(edge.to);
+        if (edge.to === id) related.add(edge.from);
+      }
+
+      nodes.forEach((n) => {
+        const nid = n.dataset.node!;
+        n.toggleAttribute('data-active', nid === id);
+        n.toggleAttribute('data-related', related.has(nid));
+        n.toggleAttribute('data-dimmed', nid !== id && !related.has(nid));
+      });
+
+      wires.forEach(({ edge, wire, packet }) => {
+        const touches = edge.from === id || edge.to === id;
+        wire.toggleAttribute('data-active', touches);
+        wire.toggleAttribute('data-dimmed', !touches);
+        packet?.toggleAttribute('data-dimmed', !touches);
+      });
+    };
+
+    // Hover and focus preview a node's connections; clicking pins them
+    // so the reader can study a path without holding the pointer still.
+    let pinned: string | null = null;
+
+    const setPinned = (id: string | null) => {
+      pinned = id;
+      canvas
+        .querySelectorAll<HTMLElement>('[data-node]')
+        .forEach((n) => n.setAttribute('aria-pressed', String(n.dataset.node === id)));
+      highlight(id);
+    };
+
+    canvas.querySelectorAll<HTMLElement>('[data-node]').forEach((node) => {
+      const id = node.dataset.node!;
+      node.addEventListener('pointerenter', () => highlight(id));
+      node.addEventListener('focus', () => highlight(id));
+      node.addEventListener('pointerleave', () => highlight(pinned));
+      node.addEventListener('blur', () => highlight(pinned));
+      node.addEventListener('click', () => setPinned(pinned === id ? null : id));
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && pinned) setPinned(null);
+    });
+
+    const scheduleDraw = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        draw();
+      });
+    };
+
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(scheduleDraw).observe(canvas);
+    } else {
+      window.addEventListener('resize', scheduleDraw);
+    }
+
+    // The diagram assembles itself once, the first time it is seen;
+    // packets then run only while it is on screen.
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const assemble = () => {
+      if (root.hasAttribute('data-drawn')) return;
+      draw(true);
+      root.setAttribute('data-drawn', '');
+      window.setTimeout(() => root.setAttribute('data-flow', ''), reduced.matches ? 0 : 1150);
+    };
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            root.toggleAttribute('data-inview', entry.isIntersecting);
+            if (entry.isIntersecting) assemble();
+          }
+        },
+        { rootMargin: '80px' }
+      ).observe(root);
+    } else {
+      root.setAttribute('data-inview', '');
+      assemble();
+    }
+
+    // Components land stage by stage, in reading order.
+    canvas.querySelectorAll<HTMLElement>('.arch__stage').forEach((stage, i) => {
+      stage
+        .querySelectorAll<HTMLElement>('[data-node]')
+        .forEach((node, j) => node.style.setProperty('--node-delay', `${i * 70 + j * 40}ms`));
+    });
+
+    draw(true);
+    // Redraw once webfonts land, since node boxes resize with them.
+    document.fonts?.ready.then(() => draw(true));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-arch]').forEach(setupDiagram);
+</script>

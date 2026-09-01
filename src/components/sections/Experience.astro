@@ -1,0 +1,60 @@
+---
+import Section from '../templates/Section.astro';
+import ExperienceEntry from '../organisms/ExperienceEntry.astro';
+import Disclosure from '../molecules/Disclosure.astro';
+import TraceScale from '../molecules/TraceScale.astro';
+import Reveal from '../atoms/Reveal.astro';
+import { roles, axisTicks, positionOf, periodOf } from '../../data/experience';
+---
+
+<Section
+  id="experience"
+  eyebrow="Experience"
+  title="Where the work happened"
+  lede="Seven and a half years across three companies, read as one trace: overlapping spans on a single axis, each with the two or three operations worth knowing about."
+  tone="raised"
+>
+  <div class="xp-list">
+    <TraceScale ticks={axisTicks} />
+
+    {
+      roles.map((role, i) => (
+        <Reveal delay={i * 60}>
+          <ExperienceEntry
+            company={role.company}
+            role={role.role}
+            location={role.location}
+            period={periodOf(role)}
+            start={positionOf(role.from)}
+            end={positionOf(role.to)}
+            tone={role.tone}
+            current={role.current}
+            stories={role.stories}
+            metric={role.metric}
+          >
+            {role.detail && (
+              <Disclosure summary="More from this role" tone="quiet">
+                <div class="xp-detail">
+                  {role.detail.map((paragraph) => <p>{paragraph}</p>)}
+                </div>
+              </Disclosure>
+            )}
+          </ExperienceEntry>
+        </Reveal>
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .xp-list { display: flex; flex-direction: column; }
+
+  .xp-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: var(--measure);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+  }
+</style>

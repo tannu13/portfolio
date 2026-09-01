@@ -1,0 +1,70 @@
+---
+/**
+ * TraceScale — the shared time axis a set of TraceLanes is measured
+ * against. Ticks are real positions on the span, so the bars below
+ * can be read against them.
+ */
+interface Props {
+  ticks: { label: string; at: number }[];
+  class?: string;
+}
+
+const { ticks, class: className } = Astro.props;
+---
+
+<div class:list={['scale', className]}>
+  <div class="scale__gutter" aria-hidden="true"></div>
+  <div class="scale__track">
+    {
+      ticks.map((tick) => (
+        <span class="scale__tick u-label" style={`--at:${tick.at}%`}>
+          {tick.label}
+        </span>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .scale {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .scale__track {
+    position: relative;
+    height: 1.25rem;
+    border-bottom: var(--hairline) solid var(--border-strong);
+  }
+
+  .scale__tick {
+    position: absolute;
+    left: var(--at);
+    bottom: 0;
+    transform: translateX(-50%);
+    padding-bottom: var(--space-2);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .scale__tick::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: var(--hairline);
+    height: 5px;
+    background-color: var(--border-strong);
+  }
+
+  .scale__tick:first-child { transform: none; }
+  .scale__tick:first-child::after { left: 0; }
+  .scale__tick:last-child { transform: translateX(-100%); }
+  .scale__tick:last-child::after { left: auto; right: 0; }
+
+  @media (min-width: 52rem) {
+    .scale { grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); }
+  }
+</style>

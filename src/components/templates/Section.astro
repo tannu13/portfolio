@@ -1,0 +1,57 @@
+---
+import SectionHeading from '../molecules/SectionHeading.astro';
+import Reveal from '../atoms/Reveal.astro';
+
+/**
+ * Section — the page's structural template. Every top-level section
+ * uses the same vertical rhythm and the same heading position, so the
+ * page scans as one instrument rather than a stack of unrelated blocks.
+ */
+interface Props {
+  id: string;
+  index?: string;
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  tone?: 'page' | 'raised';
+  bleed?: boolean;
+  class?: string;
+}
+
+const { id, index, eyebrow, title, lede, tone = 'page', bleed = false, class: className } =
+  Astro.props;
+---
+
+<section class:list={['section', `section--${tone}`, className]} id={id}>
+  <div class:list={['section__inner', !bleed && 'u-container']}>
+    <Reveal>
+      <SectionHeading
+        index={index}
+        eyebrow={eyebrow}
+        title={title}
+        lede={lede}
+        class="section__heading"
+      />
+    </Reveal>
+    <Reveal class="section__body" delay={90}>
+      <slot />
+    </Reveal>
+  </div>
+</section>
+
+<style>
+  .section { padding-block: var(--section-y); }
+
+  .section__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+  }
+
+  .section--raised {
+    background-color: var(--surface-raised);
+    border-block: var(--hairline) solid var(--border-hairline);
+  }
+
+
+</style>

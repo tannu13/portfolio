@@ -1,0 +1,137 @@
+---
+/**
+ * TraceLane — the system's signature component.
+ *
+ * A career reads like a trace: overlapping spans on one axis, each with
+ * a start, a duration, and a set of operations inside it. Experience
+ * entries are span rows rather than cards, which keeps the section
+ * quieter than Projects while still carrying real information —
+ * the reader can see the shape of a run at a glance.
+ */
+interface Props {
+  label: string;
+  role: string;
+  meta?: string;
+  duration: string;
+  start: number;
+  end: number;
+  tone?: 'signal' | 'flow' | 'neutral';
+  depth?: 0 | 1;
+  current?: boolean;
+  class?: string;
+}
+
+const {
+  label,
+  role,
+  meta,
+  duration,
+  start,
+  end,
+  tone = 'neutral',
+  depth = 0,
+  current = false,
+  class: className,
+} = Astro.props;
+---
+
+<div
+  class:list={['lane', `lane--${tone}`, className]}
+  data-depth={depth}
+  data-current={current || undefined}
+  style={`--start:${start}%; --span:${end - start}%`}
+>
+  <div class="lane__id">
+    <span class="lane__label">{label}</span>
+    <span class="lane__role">{role}</span>
+    {meta && <span class="lane__meta u-label">{meta}</span>}
+  </div>
+
+  <div class="lane__track">
+    <div class="lane__span"></div>
+    <span class="lane__duration u-label">{duration}</span>
+  </div>
+</div>
+
+<style>
+  .lane {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .lane__id { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-3); }
+
+  .lane__label {
+    font-size: var(--fs-h4);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+  }
+
+  .lane__role { font-size: var(--fs-sm); color: var(--text-secondary); }
+  .lane__meta { color: var(--text-muted); }
+
+  .lane__track {
+    position: relative;
+    height: 2.25rem;
+  }
+
+  /* the span bar: offset by start, sized by duration */
+  .lane__span {
+    position: absolute;
+    bottom: 0.5rem;
+    left: var(--start);
+    width: var(--span);
+    min-width: 3px;
+    height: 6px;
+    border-radius: var(--r-xs);
+    background-color: var(--border-strong);
+    transition: background-color var(--dur-2) var(--ease-standard),
+                height var(--dur-2) var(--ease-standard);
+  }
+
+  .lane--signal .lane__span { background-color: var(--signal); }
+  .lane--flow .lane__span { background-color: var(--flow); }
+
+  /* a nested span sits thinner and indented, like a child operation */
+  .lane[data-depth='1'] .lane__span { height: 3px; opacity: 0.7; }
+
+  .lane:hover .lane__span { height: 10px; }
+
+  /* an open right edge marks a span that has not closed */
+  .lane[data-current] .lane__span::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    background-color: inherit;
+  }
+
+  /* Narrow tracks cannot carry a date range under the span, so the
+     readout opens the row instead. */
+  .lane__duration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 52rem) {
+    .lane {
+      grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
+      gap: var(--space-5);
+      align-items: center;
+    }
+
+    .lane__id { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+
+    /* With room to work in, the readout closes off the span it
+       measures, growing leftwards from its end. */
+    .lane__duration { left: auto; right: calc(100% - var(--start) - var(--span)); }
+  }
+</style>

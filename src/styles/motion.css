@@ -1,0 +1,54 @@
+/* ==================================================================
+   MOTION
+   ------------------------------------------------------------------
+   The page's entrance behaviour. Nothing here is decorative: content
+   arrives once, in reading order, so the eye is led down the page
+   instead of meeting a full screen at once. Each element moves a
+   short distance and stops — there is no ambient movement anywhere
+   in the system.
+   ================================================================== */
+
+:root {
+  --reveal-rise: 14px;
+  --reveal-dur: var(--dur-4);
+}
+
+/* Hidden only while JavaScript is running the reveal. Without it,
+   every element is simply already in place. */
+[data-js] [data-reveal] {
+  opacity: 0;
+  transition:
+    opacity var(--reveal-dur) var(--ease-entrance),
+    transform var(--reveal-dur) var(--ease-entrance);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-js] [data-reveal='rise']  { transform: translateY(var(--reveal-rise)); }
+[data-js] [data-reveal='slide'] { transform: translateX(calc(var(--reveal-rise) * -1)); }
+[data-js] [data-reveal='scale'] { transform: scale(0.985); }
+[data-js] [data-reveal='fade']  { transform: none; }
+
+[data-js] [data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+}
+
+/* A rule that measures itself out as it arrives. */
+[data-js] [data-reveal='rule'] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--dur-4) var(--ease-standard);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-js] [data-reveal='rule'][data-revealed] { clip-path: inset(0 0 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-js] [data-reveal] {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+}

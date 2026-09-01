@@ -1,0 +1,70 @@
+---
+import Section from '../templates/Section.astro';
+import ProjectBlock from '../organisms/ProjectBlock.astro';
+import ArchitectureDiagram from '../organisms/ArchitectureDiagram.astro';
+import DeepDive from '../organisms/DeepDive.astro';
+import Reveal from '../atoms/Reveal.astro';
+import type { RowLink } from '../molecules/LinkRow.astro';
+import { projects } from '../../data/projects';
+
+/** Links are built from the data, so a project with no deployment yet
+    shows a pending marker instead of a link that goes nowhere. */
+const linksFor = (project: (typeof projects)[number]): RowLink[] => {
+  const links: RowLink[] = [];
+  if (project.demoUrl) {
+    links.push({
+      label: 'Live demo',
+      href: project.demoUrl,
+      icon: 'arrow-right',
+      variant: 'primary',
+      external: true,
+      status: 'live',
+    });
+  }
+  if (project.githubUrl) {
+    links.push({ label: 'GitHub', href: project.githubUrl, icon: 'github', external: true });
+  }
+  return links;
+};
+---
+
+<Section
+  id="projects"
+  eyebrow="Selected work"
+  title="Two systems, in depth"
+  lede="Two projects rather than ten. Each one is shown with its architecture in place and its engineering decisions written down, because what is worth knowing about a system is why it is shaped that way."
+>
+  <div class="projects">
+    {
+      projects.map((project, i) => (
+        <Reveal delay={i * 60}>
+          <ProjectBlock
+            index={project.index}
+            title={project.title}
+            description={project.description}
+            technologies={project.technologies}
+            concepts={project.concepts}
+            links={linksFor(project)}
+            pending={!project.demoUrl}
+          >
+            <ArchitectureDiagram
+              slot="diagram"
+              stages={project.architecture.stages}
+              edges={project.architecture.edges}
+              caption={project.architecture.caption}
+            />
+            <DeepDive slot="deep-dive" sections={project.deepDive} />
+          </ProjectBlock>
+        </Reveal>
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .projects {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-y);
+  }
+</style>

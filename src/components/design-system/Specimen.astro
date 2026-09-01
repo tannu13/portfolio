@@ -1,0 +1,80 @@
+---
+/** Specimen — the frame every entry in the design system sits in. */
+interface Props {
+  name: string;
+  note?: string;
+  layout?: 'row' | 'stack' | 'grid';
+  surface?: 'page' | 'raised';
+  /** Drops the two-column frame so the specimen gets the full width —
+      for components that are themselves full-width in the real page. */
+  wide?: boolean;
+  id?: string;
+}
+
+const { name, note, layout = 'row', surface = 'page', wide = false, id } = Astro.props;
+---
+
+<section class:list={['spec', wide && 'spec--wide']} id={id}>
+  <div class="spec__meta">
+    <h3 class="spec__name u-data">{name}</h3>
+    {note && <p class="spec__note">{note}</p>}
+  </div>
+  <div class:list={['spec__stage', `spec__stage--${layout}`, `spec__stage--${surface}`]}>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .spec {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding-block: var(--space-6);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .spec__name {
+    font-size: var(--fs-label);
+    font-weight: var(--wt-semi);
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+  }
+
+  .spec__note {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+    color: var(--text-muted);
+    max-width: 34ch;
+  }
+
+  .spec__stage { min-width: 0; }
+
+  .spec__stage--row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .spec__stage--stack { display: flex; flex-direction: column; gap: var(--space-5); }
+
+  .spec__stage--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: var(--space-5);
+  }
+
+  .spec__stage--raised {
+    padding: var(--space-5);
+    background-color: var(--surface-raised);
+    border: var(--hairline) solid var(--border-hairline);
+    border-radius: var(--r-md);
+  }
+
+  @media (min-width: 64rem) {
+    .spec { grid-template-columns: 15rem minmax(0, 1fr); gap: var(--space-7); }
+    .spec--wide { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+    .spec--wide .spec__note { max-width: var(--measure); }
+  }
+</style>

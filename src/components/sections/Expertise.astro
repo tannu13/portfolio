@@ -1,0 +1,27 @@
+---
+import Section from '../templates/Section.astro';
+import ExpertiseGroup from '../organisms/ExpertiseGroup.astro';
+import Reveal from '../atoms/Reveal.astro';
+import { expertise } from '../../data/expertise';
+---
+
+<Section
+  id="expertise"
+  eyebrow="Technical expertise"
+  title="Grouped by what it lets me build"
+  lede="Organised by engineering capability rather than by logo. The heading is the claim; the technologies under it are the evidence."
+>
+  <div class="areas">
+    {
+      expertise.map((area, i) => (
+        <Reveal delay={i * 50}>
+          <ExpertiseGroup title={area.title} summary={area.summary} items={area.items} />
+        </Reveal>
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .areas { display: flex; flex-direction: column; }
+</style>

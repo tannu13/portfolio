@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  noIndex?: boolean;
+}
+
+const { title, description, noIndex = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noIndex && <meta name="robots" content="noindex" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/archivo-latin-var.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/martian-mono-latin-var.woff2"
+      crossorigin
+    />
+
+    <meta name="theme-color" content="#f1f4f1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1513" media="(prefers-color-scheme: dark)" />
+
+    {/* Applies a stored theme before first paint, and marks the
+        document as scripted so the reveal styles can take hold.
+        Absent a stored choice no theme attribute is set, so the system
+        preference wins; absent JavaScript nothing is ever hidden. */}
+    <script is:inline>
+      (function () {
+        document.documentElement.setAttribute('data-js', '');
+        try {
+          var stored = localStorage.getItem('tp-theme');
+          if (stored === 'light' || stored === 'dark') {
+            document.documentElement.setAttribute('data-theme', stored);
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <slot />
+    <style>
+      .skip {
+        position: absolute;
+        left: var(--space-4);
+        top: var(--space-4);
+        z-index: var(--z-overlay);
+        padding: var(--space-2) var(--space-4);
+        background-color: var(--surface-inverse);
+        color: var(--text-inverse);
+        border-radius: var(--r-sm);
+        font-family: var(--font-mono);
+        font-size: var(--fs-label);
+        text-transform: uppercase;
+        letter-spacing: var(--tr-label);
+        text-decoration: none;
+        transform: translateY(-200%);
+        transition: transform var(--dur-2) var(--ease-standard);
+      }
+
+      .skip:focus-visible { transform: translateY(0); }
+    </style>
+  </body>
+</html>

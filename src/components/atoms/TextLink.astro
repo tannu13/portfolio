@@ -1,0 +1,56 @@
+---
+import Icon from './Icon.astro';
+
+/**
+ * TextLink — inline link. The underline is a measurement rule that
+ * draws itself from the left on hover rather than a static decoration.
+ */
+interface Props {
+  href: string;
+  external?: boolean;
+  tone?: 'default' | 'muted';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { href, external = false, tone = 'default', class: className, ...rest } = Astro.props;
+---
+
+<a
+  class:list={['tlink', `tlink--${tone}`, className]}
+  href={href}
+  {...external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+  {...rest}
+>
+  <span class="tlink__text"><slot /></span>
+  {external && <Icon name="external" size={13} class="tlink__ext" />}
+</a>
+
+<style>
+  .tlink {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3em;
+    color: var(--flow);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .tlink--muted { color: var(--text-secondary); }
+
+  .tlink__text {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% var(--hairline);
+    padding-bottom: 0.1em;
+    transition: background-size var(--dur-2) var(--ease-standard);
+  }
+
+  .tlink:hover { color: var(--flow-strong); }
+  .tlink--muted:hover { color: var(--text-primary); }
+  .tlink:hover .tlink__text,
+  .tlink:focus-visible .tlink__text { background-size: 100% var(--hairline); }
+
+  .tlink__ext { opacity: 0.6; align-self: center; }
+</style>

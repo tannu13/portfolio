@@ -1,0 +1,55 @@
+---
+import Button from '../atoms/Button.astro';
+import StatusDot from '../atoms/StatusDot.astro';
+import type { IconName } from '../atoms/Icon.astro';
+
+/**
+ * LinkRow — the standard action cluster on a project: where it runs,
+ * where the source is, and where the depth is.
+ */
+export interface RowLink {
+  label: string;
+  href: string;
+  icon?: IconName;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  external?: boolean;
+  status?: 'live' | 'idle' | 'planned';
+}
+
+interface Props {
+  links: RowLink[];
+  class?: string;
+}
+
+const { links, class: className } = Astro.props;
+---
+
+<div class:list={['linkrow', className]}>
+  {
+    links.map((link) => (
+      <span class="linkrow__item">
+        <Button
+          href={link.href}
+          variant={link.variant ?? 'secondary'}
+          size="sm"
+          icon={link.icon}
+          external={link.external}
+        >
+          {link.label}
+        </Button>
+        {link.status && <StatusDot state={link.status} />}
+      </span>
+    ))
+  }
+</div>
+
+<style>
+  .linkrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .linkrow__item { display: inline-flex; align-items: center; gap: var(--space-2); }
+</style>

@@ -1,0 +1,76 @@
+---
+import Disclosure from '../molecules/Disclosure.astro';
+import type { DeepDiveSection } from '../../data/types';
+
+/**
+ * DeepDive — the third level of the page. It stays on the page and
+ * stays in the document, so it is findable whether or not it is open.
+ */
+interface Props {
+  sections: DeepDiveSection[];
+  label?: string;
+  class?: string;
+}
+
+const { sections, label = 'Technical deep dive', class: className } = Astro.props;
+---
+
+<Disclosure summary={label} hint={`${sections.length} sections`} class={className}>
+  <div class="dive">
+    {
+      sections.map((section, i) => (
+        <section class="dive__part">
+          <h4 class="dive__title">
+            <span class="dive__index u-data" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {section.title}
+          </h4>
+          <div class="dive__body">
+            {section.body.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Disclosure>
+
+<style>
+  .dive { display: flex; flex-direction: column; }
+
+  .dive__part {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-5);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .dive__part:first-child { border-top: none; padding-top: var(--space-2); }
+
+  .dive__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-size: var(--fs-h4);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+  }
+
+  .dive__index { font-size: var(--fs-micro); color: var(--signal); }
+
+  .dive__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--measure);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+  }
+
+  @media (min-width: 52rem) {
+    .dive__part { grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr); gap: var(--space-6); }
+    .dive__title { display: block; }
+    .dive__index { display: block; margin-bottom: var(--space-2); }
+  }
+</style>

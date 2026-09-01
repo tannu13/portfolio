@@ -1,0 +1,960 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/organisms/Navbar.astro';
+import Specimen from '../components/design-system/Specimen.astro';
+import Swatch from '../components/design-system/Swatch.astro';
+
+import Button from '../components/atoms/Button.astro';
+import TextLink from '../components/atoms/TextLink.astro';
+import Tag from '../components/atoms/Tag.astro';
+import Eyebrow from '../components/atoms/Eyebrow.astro';
+import Ruler from '../components/atoms/Ruler.astro';
+import StatusDot from '../components/atoms/StatusDot.astro';
+import ThemeToggle from '../components/atoms/ThemeToggle.astro';
+import ArchNode from '../components/atoms/ArchNode.astro';
+import Reveal from '../components/atoms/Reveal.astro';
+
+import SectionHeading from '../components/molecules/SectionHeading.astro';
+import TagList from '../components/molecules/TagList.astro';
+import MetricReadout from '../components/molecules/MetricReadout.astro';
+import Disclosure from '../components/molecules/Disclosure.astro';
+import LinkRow from '../components/molecules/LinkRow.astro';
+import TraceScale from '../components/molecules/TraceScale.astro';
+import TraceLane from '../components/molecules/TraceLane.astro';
+
+import ArchitectureDiagram from '../components/organisms/ArchitectureDiagram.astro';
+import ProjectBlock from '../components/organisms/ProjectBlock.astro';
+import ExperienceEntry from '../components/organisms/ExperienceEntry.astro';
+import ExpertiseGroup from '../components/organisms/ExpertiseGroup.astro';
+import ContactBlock from '../components/organisms/ContactBlock.astro';
+import Section from '../components/templates/Section.astro';
+
+const navItems = [
+  { label: 'Foundations', href: '#foundations' },
+  { label: 'Motion', href: '#motion' },
+  { label: 'Atoms', href: '#atoms' },
+  { label: 'Molecules', href: '#molecules' },
+  { label: 'Organisms', href: '#organisms' },
+  { label: 'Templates', href: '#templates' },
+];
+
+const typeScale = [
+  { token: '--fs-display', label: 'Display', sample: 'Tanuj Pant', cls: 'ts-display' },
+  { token: '--fs-h1', label: 'Heading 1', sample: 'Matching engine', cls: 'ts-h1' },
+  { token: '--fs-h2', label: 'Heading 2', sample: 'Selected projects', cls: 'ts-h2' },
+  { token: '--fs-h3', label: 'Heading 3', sample: 'Distributed systems', cls: 'ts-h3' },
+  { token: '--fs-h4', label: 'Heading 4', sample: 'Order lifecycle', cls: 'ts-h4' },
+  { token: '--fs-lead', label: 'Lede', sample: 'Seven years building production systems.', cls: 'ts-lead' },
+  { token: '--fs-body', label: 'Body', sample: 'Events are appended to a stream, consumed once, and acknowledged.', cls: 'ts-body' },
+  { token: '--fs-sm', label: 'Small', sample: 'Supporting detail and secondary description.', cls: 'ts-sm' },
+];
+
+const spaceSteps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const durations = [
+  { token: '--dur-1', ms: '90ms', use: 'State echo — hover, press' },
+  { token: '--dur-2', ms: '160ms', use: 'Control transitions' },
+  { token: '--dur-3', ms: '260ms', use: 'Disclosure and reveal' },
+  { token: '--dur-4', ms: '420ms', use: 'Section entrance' },
+  { token: '--dur-flow', ms: '2600ms', use: 'A packet crossing a diagram' },
+];
+
+const engineStages = [
+  { label: 'Client', nodes: [{ id: 'ui', label: 'Trading UI', sub: 'React', kind: 'client' as const }] },
+  { label: 'Edge', nodes: [{ id: 'api', label: 'Order API', sub: 'Node.js', kind: 'service' as const }] },
+  { label: 'Transport', nodes: [{ id: 'stream', label: 'Redis Streams', sub: 'ORDER_CREATED', kind: 'stream' as const }] },
+  { label: 'Core', nodes: [{ id: 'engine', label: 'Matching Engine', sub: 'in-memory book', kind: 'engine' as const }] },
+  {
+    label: 'State',
+    nodes: [
+      { id: 'pg', label: 'PostgreSQL', sub: 'fills, positions', kind: 'store' as const },
+      { id: 'cache', label: 'Redis', sub: 'book snapshot', kind: 'store' as const },
+    ],
+  },
+];
+
+const engineEdges = [
+  { from: 'ui', to: 'api', mode: 'sync' as const, animated: true },
+  { from: 'api', to: 'stream', mode: 'async' as const, animated: true },
+  { from: 'stream', to: 'engine', mode: 'async' as const, animated: true },
+  { from: 'engine', to: 'pg', mode: 'async' as const, animated: true },
+  { from: 'engine', to: 'cache', mode: 'async' as const },
+  { from: 'stream', to: 'pg', mode: 'degraded' as const },
+];
+
+const agentStages = [
+  { label: 'Client', nodes: [{ id: 'chat', label: 'Chat UI', sub: 'React', kind: 'client' as const }] },
+  {
+    label: 'Orchestration',
+    nodes: [
+      { id: 'gw', label: 'Session API', sub: 'Bun + Express', kind: 'service' as const },
+      { id: 'queue', label: 'Work Queue', sub: 'Redis', kind: 'stream' as const },
+    ],
+  },
+  {
+    label: 'Agents',
+    nodes: [
+      { id: 'agent', label: 'Agent Loop', sub: 'tool calling', kind: 'engine' as const },
+      { id: 'llm', label: 'LLM Provider', sub: 'streamed tokens', kind: 'external' as const },
+    ],
+  },
+  {
+    label: 'Workspace',
+    nodes: [
+      { id: 'pod', label: 'Workspace Pod', sub: 'Kubernetes', kind: 'service' as const },
+      { id: 'preview', label: 'Live Preview', sub: 'per-session URL', kind: 'client' as const },
+    ],
+  },
+];
+
+const agentEdges = [
+  { from: 'chat', to: 'gw', mode: 'sync' as const, animated: true },
+  { from: 'gw', to: 'queue', mode: 'async' as const, animated: true },
+  { from: 'queue', to: 'agent', mode: 'async' as const, animated: true },
+  { from: 'agent', to: 'llm', mode: 'sync' as const, animated: true },
+  { from: 'agent', to: 'pod', mode: 'sync' as const, animated: true },
+  { from: 'pod', to: 'preview', mode: 'async' as const, animated: true },
+  { from: 'agent', to: 'queue', mode: 'degraded' as const },
+];
+---
+
+<BaseLayout
+  title="Design System — Tanuj Pant"
+  description="The visual system behind the portfolio: tokens, typography, colour roles, the architecture-diagram language, and every component that builds on them."
+  noIndex
+>
+  <Navbar items={navItems} brand="DS" brandHref="#top" resumeHref="/" />
+
+  <main id="main">
+    <!-- ============================ MASTHEAD ==================== -->
+    <header class="masthead u-container" id="top">
+      <Eyebrow tone="signal">Phase 4 · Visual design system</Eyebrow>
+      <h1 class="masthead__title">Instrument</h1>
+      <p class="masthead__lede">
+        The portfolio is built to read like measuring equipment: a vellum-grey substrate,
+        one measurement rule that structures every section, and colour reserved for
+        describing how data moves. Everything below is the working system — change a
+        token and the whole site follows.
+      </p>
+      <div class="masthead__facts">
+        <MetricReadout value="2" label="Typefaces" note="Archivo for prose, Martian Mono for every label, datum and diagram annotation." />
+        <MetricReadout value="73" unit="KB" label="Font payload" note="Two latin-subset variable files, self-hosted and preloaded." tone="signal" />
+        <MetricReadout value="3" label="Accent roles" note="Signal, flow and caution. Each one means something; none of them are decoration." />
+      </div>
+      <Ruler label="Scroll" />
+    </header>
+
+    <!-- ============================ FOUNDATIONS ================= -->
+    <Section
+      id="foundations"
+      index="01"
+      eyebrow="Foundations"
+      title="Tokens"
+      lede="Two layers. Primitives hold raw values; semantic tokens describe intent. Components only ever reference the semantic layer, which is why theming is a remap and not a rewrite."
+    >
+      <Specimen
+        name="Neutral ramp"
+        note="Graphite with a faint petrol-green cast — drafting vellum in light, a scope screen at rest in dark. Never pure black or pure white for surfaces."
+        layout="grid"
+      >
+        <Swatch token="--n-25" role="Raised surface" />
+        <Swatch token="--n-50" role="Page, light" />
+        <Swatch token="--n-100" role="Sunken" />
+        <Swatch token="--n-200" role="Strong border" />
+        <Swatch token="--n-400" role="Muted text" />
+        <Swatch token="--n-600" role="Secondary text" />
+        <Swatch token="--n-800" role="Inset, dark" />
+        <Swatch token="--n-950" role="Page, dark" />
+      </Specimen>
+
+      <Specimen
+        name="Accent roles"
+        note="Colour encodes system behaviour, not vendor identity. A stack list stays monochrome; a diagram does not."
+        layout="grid"
+      >
+        <Swatch token="--signal" role="Signal — live data, active state, event streams" />
+        <Swatch token="--flow" role="Flow — structure, links, synchronous request paths" />
+        <Swatch token="--caution" role="Caution — trade-offs, retries, failure paths" />
+        <Swatch token="--surface-inverse" role="Inverse — the single heaviest control" />
+      </Specimen>
+
+      <Specimen
+        name="Semantic surfaces"
+        note="Four depths, one hairline. Elevation is drawn with borders rather than shadow so the page stays flat and fast."
+        layout="grid"
+      >
+        <Swatch token="--surface-page" role="--surface-page" border />
+        <Swatch token="--surface-raised" role="--surface-raised" border />
+        <Swatch token="--surface-sunken" role="--surface-sunken" border />
+        <Swatch token="--surface-inset" role="--surface-inset" border />
+      </Specimen>
+
+      <Specimen name="Type scale" note="Fluid from 360px to 1440px. Headings are Archivo, tightened; labels are Martian Mono, condensed to 87.5% and tracked out." layout="stack">
+        {
+          typeScale.map((row) => (
+            <div class="type-row">
+              <div class="type-row__meta">
+                <span class="u-label">{row.label}</span>
+                <span class="u-data type-row__token">{row.token}</span>
+              </div>
+              <p class={`type-row__sample ${row.cls}`}>{row.sample}</p>
+            </div>
+          ))
+        }
+        <div class="type-row">
+          <div class="type-row__meta">
+            <span class="u-label">Label</span>
+            <span class="u-data type-row__token">--fs-label</span>
+          </div>
+          <p class="type-row__sample u-label">Redis Streams · consumer group</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__meta">
+            <span class="u-label">Data</span>
+            <span class="u-data type-row__token">--fs-sm / u-data</span>
+          </div>
+          <p class="type-row__sample u-data">p99 4.2ms · 12,400 orders/s · 1,048,576 rows</p>
+        </div>
+      </Specimen>
+
+      <Specimen name="Space" note="A 4px grid. Sections breathe on --section-y, which scales with the viewport; everything inside snaps to the steps." layout="stack">
+        <div class="space-scale">
+          {
+            spaceSteps.map((step) => (
+              <div class="space-scale__row">
+                <span class="u-data space-scale__token">--space-{step}</span>
+                <span class="space-scale__bar" style={`width: var(--space-${step})`} />
+              </div>
+            ))
+          }
+        </div>
+      </Specimen>
+
+      <Specimen name="Shape" note="Small radii throughout — measured, not soft, and not brutalist-square. The client node is the one rounded thing on the page, because it is the human end." layout="row">
+        <div class="shape-chip" style="border-radius: var(--r-xs)"><span class="u-data">2px</span></div>
+        <div class="shape-chip" style="border-radius: var(--r-sm)"><span class="u-data">4px</span></div>
+        <div class="shape-chip" style="border-radius: var(--r-md)"><span class="u-data">6px</span></div>
+        <div class="shape-chip" style="border-radius: var(--r-lg)"><span class="u-data">10px</span></div>
+        <div class="shape-chip shape-chip--raise"><span class="u-data">raise</span></div>
+      </Specimen>
+
+      <Specimen name="Motion" note="Every duration is tied to a job. Hover the row to run it. All of it collapses to 1ms under prefers-reduced-motion." layout="stack">
+        <div class="motion">
+          {
+            durations.map((d) => (
+              <div class="motion__row">
+                <span class="u-data motion__token">{d.token}</span>
+                <span class="u-data motion__ms">{d.ms}</span>
+                <span class="motion__track">
+                  <span class="motion__dot" style={`transition-duration: var(${d.token})`} />
+                </span>
+                <span class="motion__use">{d.use}</span>
+              </div>
+            ))
+          }
+        </div>
+        <div class="ease">
+          <span class="u-label">Easing</span>
+          <ul class="ease__list u-data">
+            <li>--ease-standard · state changes</li>
+            <li>--ease-entrance · things arriving</li>
+            <li>--ease-exit · things leaving</li>
+            <li>--ease-snap · the theme switch detent</li>
+          </ul>
+        </div>
+      </Specimen>
+    </Section>
+
+    <!-- ============================ MOTION ====================== -->
+    <Section
+      id="motion"
+      index="02"
+      eyebrow="Motion"
+      title="What moves, and why"
+      lede="Every animation in the system does one of three jobs: it confirms an action, shows a relationship, or explains how data moves. Anything that only decorates has been cut. Nothing moves on its own once the page has settled."
+    >
+      <Specimen
+        name="Reveal"
+        note="Content arrives once, in reading order, so the eye is led down the page instead of meeting a full screen at once. Four variants, one shared observer, and it never replays on scroll-back."
+        layout="stack"
+      >
+        <div class="demo" data-reveal-demo>
+          <div class="demo__row">
+            <Reveal class="demo__card" variant="rise"><span class="u-label">rise</span><p>Default. Blocks of content and section bodies.</p></Reveal>
+            <Reveal class="demo__card" variant="fade" delay={70}><span class="u-label">fade</span><p>Where movement would fight a neighbouring element.</p></Reveal>
+            <Reveal class="demo__card" variant="scale" delay={140}><span class="u-label">scale</span><p>Framed things: diagrams, code, media.</p></Reveal>
+          </div>
+          <Reveal variant="rule" class="demo__rule" delay={210}>
+            <div class="u-ruler"></div>
+          </Reveal>
+          <Button variant="secondary" size="sm" icon="arrow-right" data-replay-reveal>Replay</Button>
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Entrance choreography"
+        note="The diagram assembles in the order a reader would build it: components land stage by stage, connections draw along their own path, then events start flowing. It plays once, the first time the diagram is seen."
+        layout="stack"
+        wide
+      >
+        <ol class="steps">
+          <li><span class="u-data steps__t">0 – 400ms</span><span>Components appear, staggered 70ms per stage.</span></li>
+          <li><span class="u-data steps__t">300 – 1000ms</span><span>Connections draw from source to target; dashed failure paths fade in, because their pattern is information and cannot double as a wipe.</span></li>
+          <li><span class="u-data steps__t">1150ms</span><span>Events begin moving, and stop again whenever the diagram leaves the screen.</span></li>
+        </ol>
+        <ArchitectureDiagram
+          stages={engineStages}
+          edges={engineEdges}
+          caption="Press replay to watch the sequence again."
+        />
+        <Button variant="secondary" size="sm" icon="arrow-right" data-replay-arch>Replay</Button>
+      </Specimen>
+
+      <Specimen
+        name="Feedback"
+        note="Interaction motion is short and local: it answers the pointer, it does not perform. Nothing here runs longer than 260ms."
+        layout="stack"
+      >
+        <ul class="feedback">
+          <li><span class="u-label">Press</span><span>Controls sink 1px, and a trailing arrow steps toward what it opens.</span></li>
+          <li><span class="u-label">Link</span><span>The underline measures itself out from the left.</span></li>
+          <li><span class="u-label">Disclosure</span><span>The marker turns as it changes sign; the panel opens and closes on a height transition.</span></li>
+          <li><span class="u-label">Navigation</span><span>The active tick draws in under the current section.</span></li>
+          <li><span class="u-label">Copy</span><span>The label becomes its own result, so no toast has to appear somewhere else.</span></li>
+          <li><span class="u-label">Diagram</span><span>Hovering a component dims everything it does not touch.</span></li>
+        </ul>
+      </Specimen>
+
+      <Specimen name="Excluded" note="Deliberately absent. Each of these would either compete with the content or cost more than it explains." layout="stack">
+        <ul class="rules">
+          <li><span class="u-label">01</span> Ambient movement of any kind once the page has settled — no drifting particles, no looping backgrounds.</li>
+          <li><span class="u-label">02</span> Parallax, and any effect tied continuously to scroll position.</li>
+          <li><span class="u-label">03</span> Page and route transitions. This is one page; there is nothing to transition between.</li>
+          <li><span class="u-label">04</span> Spinning or floating technology logos.</li>
+          <li><span class="u-label">05</span> Animation on anything that has not yet been read.</li>
+        </ul>
+        <p class="prose-note">
+          <code>prefers-reduced-motion: reduce</code> collapses every transition to 1ms, stops the
+          status pulse, removes diagram packets, and shows revealed content immediately —
+          with every end state intact.
+        </p>
+      </Specimen>
+    </Section>
+
+    <!-- ============================ ATOMS ======================= -->
+    <Section
+      id="atoms"
+      index="03"
+      eyebrow="Atoms"
+      title="Controls and marks"
+      lede="The smallest pieces. Each one is a single decision — an action, a link, a label, a state — and carries no layout opinion of its own."
+      tone="raised"
+    >
+      <Specimen name="Button" note="Three weights of emphasis. Only one primary per view. The trailing icon is the only thing that moves." layout="row">
+        <Button variant="primary" icon="arrow-right">View projects</Button>
+        <Button variant="secondary" icon="download">Resume</Button>
+        <Button variant="ghost" icon="arrow-right">Read more</Button>
+        <Button variant="secondary" size="sm" icon="external">GitHub</Button>
+        <Button variant="ghost" size="sm">Skip</Button>
+      </Specimen>
+
+      <Specimen name="TextLink" note="The underline draws itself from the left on hover — a rule being measured out, not a static decoration." layout="row">
+        <p class="inline-demo">
+          Built on an <TextLink href="#atoms">in-memory order book</TextLink> with
+          <TextLink href="#atoms" external>Redis Streams</TextLink> as the transport, and
+          a <TextLink href="#atoms" tone="muted">secondary reference</TextLink> alongside.
+        </p>
+      </Specimen>
+
+      <Specimen name="Tag" note="Neutral by default. Tone is available for diagram legends only, never for painting a stack list in vendor colours." layout="row">
+        <Tag>TypeScript</Tag>
+        <Tag>Redis Streams</Tag>
+        <Tag>PostgreSQL</Tag>
+        <Tag tone="signal">async</Tag>
+        <Tag tone="flow">sync</Tag>
+        <Tag tone="caution">retry</Tag>
+      </Specimen>
+
+      <Specimen name="Eyebrow" note="A mono label preceded by a tick, tying every label back to the ruler that structures the page." layout="row">
+        <Eyebrow>Selected work</Eyebrow>
+        <Eyebrow tone="signal">Live</Eyebrow>
+        <Eyebrow tone="flow">Deep dive</Eyebrow>
+        <Eyebrow tick={false}>No tick</Eyebrow>
+      </Specimen>
+
+      <Specimen name="Ruler" note="The structural signature: minor ticks every 12px, a major tick every 60px. Used as the section divider and as the axis under the heading." layout="stack">
+        <Ruler />
+        <Ruler label="Projects" />
+        <Ruler label="2018 — 2026" align="start" />
+      </Specimen>
+
+      <Specimen name="StatusDot" note="Marks a link that reaches something running. The ring pulse is the only ambient animation in the system." layout="row">
+        <StatusDot state="live" label="Live" />
+        <StatusDot state="idle" label="Archived" />
+        <StatusDot state="planned" label="Demo pending" />
+      </Specimen>
+
+      <Specimen name="ThemeToggle" note="Two detents and a thumb. Starts unset so the system preference wins; the choice is remembered from the first click." layout="row">
+        <ThemeToggle />
+      </Specimen>
+
+      <Specimen
+        name="ArchNode"
+        note="Border style encodes what a component is, so colour is left free to encode how data moves. Hover any node inside a diagram to trace its connections."
+        layout="row"
+      >
+        <ArchNode id="s-client" label="Trading UI" sub="React" kind="client" />
+        <ArchNode id="s-service" label="Order API" sub="Node.js" kind="service" />
+        <ArchNode id="s-engine" label="Matching Engine" sub="in-memory" kind="engine" />
+        <ArchNode id="s-store" label="PostgreSQL" sub="fills" kind="store" />
+        <ArchNode id="s-stream" label="Redis Streams" sub="append-only" kind="stream" />
+        <ArchNode id="s-external" label="LLM Provider" sub="third party" kind="external" />
+      </Specimen>
+    </Section>
+
+    <!-- ============================ MOLECULES =================== -->
+    <Section
+      id="molecules"
+      index="04"
+      eyebrow="Molecules"
+      title="Assemblies"
+      lede="Atoms combined into one recurring job: a section opener, a stack list, a measured result, a place to go deeper."
+    >
+      <Specimen name="SectionHeading" note="Index, eyebrow, title and lede sitting on the rule. The index is a real position in the page sequence." layout="stack">
+        <SectionHeading
+          index="02"
+          eyebrow="Selected work"
+          title="Two systems, in depth"
+          lede="Both projects are shown with their architecture in the section itself. Nothing important lives behind a link to another page."
+        />
+      </Specimen>
+
+      <Specimen name="TagList" note="Outline for a stack; plain for engineering concepts, which read better as a sentence of terms than as a row of chips." layout="stack">
+        <TagList label="Stack" items={['TypeScript', 'Node.js', 'Redis', 'Redis Streams', 'PostgreSQL', 'Docker']} />
+        <TagList
+          label="Engineering"
+          variant="plain"
+          items={['Event-driven architecture', 'In-memory matching', 'Idempotent consumers', 'Fault tolerance', 'High-throughput processing']}
+        />
+      </Specimen>
+
+      <Specimen name="MetricReadout" note="A measured result, set in tabular mono so a row of them lines up. Reserved for numbers that were actually observed." layout="grid">
+        <MetricReadout value="3 wks → 1–2 d" label="Manual processing" note="Carrier onboarding, rate management and invoice reconciliation, automated." tone="signal" />
+        <MetricReadout value="86–95" unit="%" label="Ingestion time cut" note="CSV pipeline reworked for 1–4M-row files." />
+        <MetricReadout value="10K+" label="Rows virtualised" note="Inline and bulk editing stayed responsive at full table size." />
+      </Specimen>
+
+      <Specimen name="Disclosure" note="Progressive depth built on <details>: the content is in the document whether open or closed, and works without JavaScript." layout="stack">
+        <div class="disc-stack">
+          <Disclosure summary="Technical deep dive" hint="Architecture · Trade-offs">
+            <div class="prose">
+              <p>
+                Orders enter through the API, are validated, and are appended to a Redis
+                Stream. The matching engine is the single consumer of that stream, which
+                is what makes ordering deterministic: one writer, one book, one sequence.
+              </p>
+              <p>
+                Fills are published back onto a second stream and persisted asynchronously,
+                so a slow database cannot stall matching.
+              </p>
+            </div>
+          </Disclosure>
+          <Disclosure summary="Failure and recovery" hint="Reliability">
+            <div class="prose">
+              <p>
+                Consumers acknowledge only after the write succeeds. A crashed engine
+                replays from the last acknowledged offset and rebuilds the book in memory
+                before accepting new orders.
+              </p>
+            </div>
+          </Disclosure>
+        </div>
+      </Specimen>
+
+      <Specimen name="LinkRow" note="The standard action cluster on a project: where it runs, where the source is, where the depth is." layout="row">
+        <LinkRow
+          links={[
+            { label: 'Live demo', href: '#', icon: 'arrow-right', variant: 'primary', status: 'planned' },
+            { label: 'GitHub', href: '#', icon: 'github', external: true },
+            { label: 'Deep dive', href: '#molecules', icon: 'arrow-down', variant: 'ghost' },
+          ]}
+        />
+      </Specimen>
+
+      <Specimen
+        name="TraceLane"
+        note="The signature. A career reads like a distributed trace — overlapping spans on one axis, each with a start and a duration. Hover a lane to thicken its span."
+        layout="stack"
+      >
+        <div class="trace">
+          <TraceScale
+            ticks={[
+              { label: '2018', at: 0 },
+              { label: '2020', at: 25 },
+              { label: '2022', at: 50 },
+              { label: '2024', at: 75 },
+              { label: '2026', at: 100 },
+            ]}
+          />
+          <TraceLane label="FreightExchange" role="Developer" meta="Australia" duration="Nov 2022 – Jan 2026" start={54} end={100} tone="signal" current />
+          <TraceLane label="Wootag" role="Software Engineer" meta="Singapore" duration="Apr 2021 – Nov 2022" start={35} end={54} tone="flow" />
+          <TraceLane label="Pinch / ACL Mobile" role="Application Developer" meta="India" duration="Jul 2018 – Mar 2021" start={0} end={35} />
+        </div>
+      </Specimen>
+    </Section>
+
+    <!-- ============================ ORGANISMS =================== -->
+    <Section
+      id="organisms"
+      index="05"
+      eyebrow="Organisms"
+      title="Sections"
+      lede="Complete, self-contained blocks. These are what the finished page is assembled from — the navigation you are using, the diagram language, a project case study, an experience entry, an expertise group, and the contact close."
+      tone="raised"
+    >
+      <Specimen name="Navbar" note="Sticky, compact, and always showing where you are. The active marker is a tick on the rule. It is in use at the top of this page — narrow the window to see it collapse." layout="stack">
+        <p class="prose-note">
+          Scroll this page and watch the marker track the current section; below 52rem the
+          links collapse into the compact menu.
+        </p>
+      </Specimen>
+
+      <Specimen
+        name="ArchitectureDiagram"
+        note="First-class content. Nodes are laid out in stages and the connectors are measured from the real DOM after layout, so the same data reflows into a vertical diagram on a phone instead of being scaled down until unreadable. Hover a node to preview what it touches; click to hold the highlight, Escape to release."
+        layout="stack"
+        wide
+      >
+        <ArchitectureDiagram
+          stages={engineStages}
+          edges={engineEdges}
+          caption="Order path through the perpetual futures engine. One writer owns the book, so ordering is deterministic; persistence is asynchronous so a slow write cannot stall a match."
+        />
+        <ArchitectureDiagram
+          stages={agentStages}
+          edges={agentEdges}
+          caption="Prompt to preview in the AI coding platform. The agent loop drives tool calls against an isolated Kubernetes workspace; failed jobs return to the queue rather than to the user."
+        />
+      </Specimen>
+
+      <Specimen name="ProjectBlock" note="A case study, not a card. The architecture sits inside the block and the depth expands underneath it." layout="stack" wide>
+        <ProjectBlock
+          index="01"
+          title="Event-Driven Perpetual Futures Matching Engine"
+          description="A high-performance, fault-tolerant perpetual futures platform built around an in-memory matching engine and a decoupled, event-driven microservice architecture."
+          technologies={['TypeScript', 'Node.js', 'Redis', 'Redis Streams', 'PostgreSQL', 'Docker']}
+          concepts={['In-memory matching', 'Event-driven architecture', 'Idempotent consumers', 'Fault tolerance', 'High throughput']}
+          links={[
+            { label: 'Live demo', href: '#', icon: 'arrow-right', variant: 'primary', status: 'planned' },
+            { label: 'GitHub', href: '#', icon: 'github', external: true },
+          ]}
+        >
+          <ArchitectureDiagram
+            slot="diagram"
+            stages={engineStages}
+            edges={engineEdges}
+            legend={false}
+          />
+          <Disclosure slot="deep-dive" summary="Technical deep dive" hint="6 sections">
+            <div class="prose">
+              <p>
+                Expanded content lives here on the same page: architecture, order lifecycle,
+                event flow, persistence, failure handling and trade-offs.
+              </p>
+            </div>
+          </Disclosure>
+        </ProjectBlock>
+      </Specimen>
+
+      <Specimen name="ExperienceEntry" note="Quieter than a project by design: a span on the career trace plus the two or three operations worth reading." layout="stack">
+        <div class="trace">
+          <TraceScale
+            ticks={[
+              { label: '2018', at: 0 },
+              { label: '2022', at: 50 },
+              { label: '2026', at: 100 },
+            ]}
+          />
+          <ExperienceEntry
+            company="FreightExchange"
+            role="Developer"
+            location="Australia"
+            period="Nov 2022 – Jan 2026"
+            start={54}
+            end={100}
+            tone="signal"
+            current
+            stories={[
+              'Led the migration from a monolith to REST-based microservices, defining service boundaries and API contracts.',
+              'Designed virtualised data tables holding 10K+ records with responsive inline and bulk editing.',
+              'Automated carrier onboarding, rate management and invoice reconciliation, cutting manual processing from about three weeks to one or two days.',
+            ]}
+          >
+            <Disclosure summary="More from this role" tone="quiet">
+              <div class="prose">
+                <p>Integrated Stripe as part of the transition to a SaaS business model.</p>
+              </div>
+            </Disclosure>
+          </ExperienceEntry>
+        </div>
+      </Specimen>
+
+      <Specimen name="ExpertiseGroup" note="Typography, not logos. The capability is the heading; the technologies underneath are the evidence for it." layout="stack">
+        <div>
+          <ExpertiseGroup
+            title="Distributed Systems"
+            summary="Designing services that keep working when one of them does not."
+            items={['Microservices', 'Redis', 'Redis Streams', 'REST APIs', 'Background processing', 'Async workflows', 'Fault tolerance', 'Idempotency', 'Scalability', 'System design']}
+          />
+          <ExpertiseGroup
+            title="Data & Performance"
+            summary="Moving large volumes of data without the system noticing."
+            items={['PostgreSQL', 'MySQL', 'Bulk inserts', 'Ingestion pipelines', 'Benchmarking', 'Performance optimisation', 'Large dataset processing']}
+          />
+          <ExpertiseGroup
+            title="AI Engineering"
+            summary="Building the harness around a model, not just the prompt."
+            items={['Coding agents', 'LLM tool calling', 'Context management', 'Hooks', 'Compaction', 'Sub-agent orchestration']}
+          />
+        </div>
+      </Specimen>
+
+      <Specimen name="ContactBlock" note="One line of intent, one unmissable address, and the three links a reviewer will look for." layout="stack">
+        <ContactBlock
+          prompt="Have an interesting engineering problem? Let's talk."
+          email="tanujpant13@gmail.com"
+          links={[
+            { label: 'GitHub', value: '@tanujpant', href: '#', icon: 'github', external: true },
+            { label: 'LinkedIn', value: 'in/tanujpant', href: '#', icon: 'linkedin', external: true },
+            { label: 'Resume', value: 'PDF · 96KB', href: '#', icon: 'download' },
+          ]}
+        />
+      </Specimen>
+    </Section>
+
+    <!-- ============================ TEMPLATES =================== -->
+    <Section
+      id="templates"
+      index="06"
+      eyebrow="Templates"
+      title="Page structure"
+      lede="One section template governs the whole page: index, eyebrow, title, lede, then body — always in that order, always on the same rhythm. Every section you have scrolled through is an instance of it."
+    >
+      <Specimen name="Section" note="Props: id, index, eyebrow, title, lede, tone, bleed. The raised tone alternates the background so adjacent sections separate without a heavy divider." layout="stack">
+        <pre class="code"><code>{`<Section
+  id="projects"
+  index="02"
+  eyebrow="Selected work"
+  title="Two systems, in depth"
+  lede="Both projects are shown with their architecture in place."
+  tone="raised"
+>
+  <ProjectBlock … />
+</Section>`}</code></pre>
+      </Specimen>
+
+      <Specimen name="Composition rules" note="The constraints that keep the system coherent as it grows." layout="stack">
+        <ul class="rules">
+          <li><span class="u-label">01</span> Components reference semantic tokens only — never a raw <code>--n-*</code> or a hex value.</li>
+          <li><span class="u-label">02</span> One primary button per view. Everything else is secondary or ghost.</li>
+          <li><span class="u-label">03</span> Colour describes system behaviour. A technology list stays monochrome.</li>
+          <li><span class="u-label">04</span> Elevation is a hairline. Shadow is reserved for the sticky navigation.</li>
+          <li><span class="u-label">05</span> Architecture diagrams are content: they sit in the section, never behind a link.</li>
+          <li><span class="u-label">06</span> Animation explains, confirms, or directs attention. Anything else is cut.</li>
+          <li><span class="u-label">07</span> Every interactive element has a visible focus state and an accessible name.</li>
+        </ul>
+      </Specimen>
+    </Section>
+
+    <footer class="foot u-container">
+      <Ruler label="End of system" />
+      <p class="foot__note">
+        Phase 4 of the build plan. Next: motion and micro-interactions, then the page
+        itself is assembled from these components.
+      </p>
+    </footer>
+  </main>
+</BaseLayout>
+
+<style>
+  /* --- masthead --------------------------------------------------- */
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-block: clamp(3rem, 2rem + 6vw, 6rem) var(--space-5);
+  }
+
+  .masthead__title {
+    font-size: var(--fs-display);
+    line-height: var(--lh-display);
+    letter-spacing: var(--tr-display);
+    font-weight: var(--wt-bold);
+  }
+
+  .masthead__lede {
+    max-width: var(--measure);
+    font-size: var(--fs-lead);
+    line-height: var(--lh-prose);
+    color: var(--text-secondary);
+  }
+
+  .masthead__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-5);
+    margin-block: var(--space-5);
+  }
+
+  /* --- type specimen ---------------------------------------------- */
+  .type-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-top: var(--hairline) solid var(--border-hairline);
+    align-items: baseline;
+  }
+
+  .type-row__meta { display: flex; align-items: baseline; gap: var(--space-3); }
+  .type-row__token { font-size: var(--fs-micro); color: var(--text-muted); }
+  .type-row__sample { min-width: 0; }
+
+  .ts-display { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--tr-display); font-weight: var(--wt-bold); }
+  .ts-h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); letter-spacing: var(--tr-heading); font-weight: var(--wt-bold); }
+  .ts-h2 { font-size: var(--fs-h2); letter-spacing: var(--tr-heading); font-weight: var(--wt-bold); }
+  .ts-h3 { font-size: var(--fs-h3); letter-spacing: var(--tr-heading); font-weight: var(--wt-bold); }
+  .ts-h4 { font-size: var(--fs-h4); font-weight: var(--wt-semi); }
+  .ts-lead { font-size: var(--fs-lead); color: var(--text-secondary); }
+  .ts-body { font-size: var(--fs-body); }
+  .ts-sm { font-size: var(--fs-sm); color: var(--text-secondary); }
+
+  @media (min-width: 40rem) {
+    .type-row { grid-template-columns: 12rem 1fr; gap: var(--space-5); }
+    .type-row__meta { flex-direction: column; gap: var(--space-1); }
+  }
+
+  /* --- space specimen --------------------------------------------- */
+  .space-scale { display: flex; flex-direction: column; gap: var(--space-2); }
+
+  .space-scale__row { display: flex; align-items: center; gap: var(--space-4); }
+
+  .space-scale__token { font-size: var(--fs-micro); color: var(--text-muted); width: 6rem; }
+
+  .space-scale__bar {
+    height: 10px;
+    background-color: var(--flow);
+    border-radius: var(--r-xs);
+  }
+
+  /* --- shape specimen --------------------------------------------- */
+  .shape-chip {
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 3.5rem;
+    background-color: var(--surface-raised);
+    border: var(--hairline) solid var(--border-strong);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .shape-chip--raise { border-radius: var(--r-sm); box-shadow: var(--shadow-raise); }
+
+  /* --- motion specimen -------------------------------------------- */
+  .motion { display: flex; flex-direction: column; gap: var(--space-2); }
+
+  .motion__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-2);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .motion__token { font-size: var(--fs-micro); }
+  .motion__ms { font-size: var(--fs-micro); color: var(--text-muted); text-align: right; }
+
+  .motion__track {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 12px;
+    border-bottom: var(--hairline) solid var(--border-hairline);
+  }
+
+  .motion__dot {
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--r-xs);
+    background-color: var(--signal);
+    transition-property: transform;
+    transition-timing-function: var(--ease-standard);
+  }
+
+  .motion__row:hover .motion__dot { transform: translateX(calc(var(--travel, 220px))); }
+
+  .motion__use { grid-column: 1 / -1; font-size: var(--fs-sm); color: var(--text-muted); }
+
+  @media (min-width: 48rem) {
+    .motion__row { grid-template-columns: 9rem 5rem minmax(8rem, 1fr) minmax(12rem, 16rem); }
+    .motion__track { grid-column: auto; }
+    .motion__use { grid-column: auto; }
+  }
+
+  .ease { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-4); }
+  .ease__list { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); list-style: none; margin: 0; padding: 0; font-size: var(--fs-micro); color: var(--text-muted); }
+
+  /* --- misc specimen scaffolding ---------------------------------- */
+  .inline-demo { max-width: var(--measure); line-height: var(--lh-prose); }
+
+  .prose { display: flex; flex-direction: column; gap: var(--space-4); max-width: var(--measure); color: var(--text-secondary); line-height: var(--lh-prose); }
+
+  .prose-note { max-width: var(--measure); color: var(--text-secondary); line-height: var(--lh-prose); }
+
+  .disc-stack { width: 100%; }
+
+  .trace { width: 100%; }
+
+  .code {
+    margin: 0;
+    padding: var(--space-4);
+    background-color: var(--surface-sunken);
+    border: var(--hairline) solid var(--border-hairline);
+    border-radius: var(--r-sm);
+    overflow-x: auto;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .rules { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+
+  .rules li {
+    display: flex;
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+    border-top: var(--hairline) solid var(--border-hairline);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+    max-width: 70ch;
+  }
+
+  .rules .u-label { color: var(--text-muted); padding-top: 0.4em; }
+
+  .rules code { color: var(--text-primary); }
+
+  /* --- motion demos ------------------------------------------------ */
+  .demo { display: flex; flex-direction: column; gap: var(--space-5); align-items: flex-start; }
+
+  .demo__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+  }
+
+  .demo__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background-color: var(--surface-raised);
+    border: var(--hairline) solid var(--border-hairline);
+    border-radius: var(--r-sm);
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+
+  .demo__card .u-label { color: var(--signal); }
+
+  .demo__rule { width: 100%; }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    counter-reset: step;
+  }
+
+  .steps li {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-1) var(--space-4);
+    padding-block: var(--space-3);
+    border-top: var(--hairline) solid var(--border-hairline);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+    max-width: 70ch;
+  }
+
+  .steps__t { font-size: var(--fs-micro); color: var(--signal); }
+
+  .feedback {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .feedback li {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-1) var(--space-4);
+    padding-block: var(--space-3);
+    border-top: var(--hairline) solid var(--border-hairline);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+    max-width: 70ch;
+  }
+
+  .feedback .u-label { color: var(--text-muted); padding-top: 0.35em; }
+
+  @media (min-width: 40rem) {
+    .steps li, .feedback li { grid-template-columns: 9rem minmax(0, 1fr); }
+  }
+
+  /* --- footer ------------------------------------------------------ */
+  .foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-block: var(--space-7) var(--space-9);
+  }
+
+  .foot__note { max-width: var(--measure); color: var(--text-muted); font-size: var(--fs-sm); }
+</style>
+
+<script>
+  /* Design-system only: replays an animation that otherwise plays once,
+     so the sequence can be inspected without reloading. */
+  document.querySelector('[data-replay-reveal]')?.addEventListener('click', () => {
+    const scope = document.querySelector('[data-reveal-demo]');
+    const items = scope?.querySelectorAll('[data-reveal]') ?? [];
+    items.forEach((el) => el.removeAttribute('data-revealed'));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        items.forEach((el) => el.setAttribute('data-revealed', ''))
+      )
+    );
+  });
+
+  document.querySelector('[data-replay-arch]')?.addEventListener('click', (event) => {
+    const spec = (event.currentTarget as HTMLElement).closest('section');
+    const arch = spec?.querySelector('[data-arch]');
+    if (!arch) return;
+    arch.removeAttribute('data-drawn');
+    arch.removeAttribute('data-flow');
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        arch.setAttribute('data-drawn', '');
+        window.setTimeout(() => arch.setAttribute('data-flow', ''), 1150);
+      })
+    );
+  });
+</script>

@@ -1,0 +1,34 @@
+---
+import Tag from '../atoms/Tag.astro';
+
+interface Props {
+  items: string[];
+  label?: string;
+  variant?: 'outline' | 'plain';
+  class?: string;
+}
+
+const { items, label, variant = 'outline', class: className } = Astro.props;
+---
+
+<div class:list={['taglist', className]}>
+  {label && <span class="u-label taglist__label">{label}</span>}
+  <ul class="taglist__items">
+    {items.map((item) => <li><Tag variant={variant}>{item}</Tag></li>)}
+  </ul>
+</div>
+
+<style>
+  .taglist { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  .taglist__label { color: var(--text-muted); }
+
+  .taglist__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

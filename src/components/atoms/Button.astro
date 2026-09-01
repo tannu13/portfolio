@@ -1,0 +1,119 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+
+/**
+ * Button — three weights of emphasis, never more than one `primary`
+ * in a view. Renders an <a> when given an href so links that look
+ * like buttons stay links.
+ */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md';
+  href?: string;
+  type?: 'button' | 'submit';
+  icon?: IconName;
+  iconLeading?: IconName;
+  external?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  href,
+  type = 'button',
+  icon,
+  iconLeading,
+  external = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const extra = href
+  ? { href, ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}) }
+  : { type };
+---
+
+<Tag class:list={['btn', `btn--${variant}`, `btn--${size}`, className]} {...extra} {...rest}>
+  {iconLeading && <Icon name={iconLeading} size={size === 'sm' ? 14 : 16} />}
+  <span class="btn__label"><slot /></span>
+  {icon && <Icon name={icon} size={size === 'sm' ? 14 : 16} class="btn__icon" />}
+</Tag>
+
+<style>
+  .btn {
+    --btn-pad-x: var(--space-5);
+    --btn-height: 2.75rem;
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: var(--btn-height);
+    padding-inline: var(--btn-pad-x);
+    border: var(--hairline) solid transparent;
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--wt-medium);
+    font-stretch: var(--wd-label);
+    letter-spacing: var(--tr-label);
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-2) var(--ease-standard),
+      border-color var(--dur-2) var(--ease-standard),
+      color var(--dur-2) var(--ease-standard),
+      transform var(--dur-1) var(--ease-standard);
+  }
+
+  .btn--sm {
+    --btn-pad-x: var(--space-3);
+    --btn-height: 2rem;
+    font-size: var(--fs-micro);
+  }
+
+  .btn:active { transform: translateY(1px); }
+
+  /* The trailing icon nudges forward on hover — the only movement a
+     button makes, and it points where the click leads. */
+  .btn__icon { transition: transform var(--dur-2) var(--ease-standard); }
+  .btn:hover .btn__icon { transform: translateX(2px); }
+
+  /* --- primary: ink fill, the single heaviest control on a screen */
+  .btn--primary {
+    background-color: var(--surface-inverse);
+    color: var(--text-inverse);
+    border-color: var(--surface-inverse);
+  }
+  .btn--primary:hover {
+    background-color: var(--signal);
+    border-color: var(--signal);
+    color: var(--on-signal);
+  }
+
+  /* --- secondary: hairline chassis */
+  .btn--secondary {
+    background-color: transparent;
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+  .btn--secondary:hover {
+    border-color: var(--signal);
+    color: var(--signal);
+    background-color: var(--signal-soft);
+  }
+
+  /* --- ghost: label only, for tertiary actions in dense rows */
+  .btn--ghost {
+    background-color: transparent;
+    color: var(--text-secondary);
+    padding-inline: var(--space-2);
+  }
+  .btn--ghost:hover { color: var(--text-primary); }
+</style>

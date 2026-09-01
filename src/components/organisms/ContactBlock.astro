@@ -1,0 +1,199 @@
+---
+import Icon, { type IconName } from '../atoms/Icon.astro';
+
+/**
+ * ContactBlock — the last thing on the page. One line of intent, one
+ * unmissable address, and the three links a reviewer will look for.
+ */
+export interface ContactLink {
+  label: string;
+  value: string;
+  href: string;
+  icon: IconName;
+  external?: boolean;
+}
+
+interface Props {
+  prompt: string;
+  email: string;
+  links: ContactLink[];
+  class?: string;
+}
+
+const { prompt, email, links, class: className } = Astro.props;
+---
+
+<div class:list={['contact', className]}>
+  <p class="contact__prompt">{prompt}</p>
+
+  <div class="contact__address">
+    <a class="contact__email" href={`mailto:${email}`}>
+      <span class="contact__email-text">{email}</span>
+      <Icon name="arrow-right" size={24} class="contact__email-icon" />
+    </a>
+    <button class="contact__copy" type="button" data-copy={email}>
+      <Icon name="check" size={13} class="contact__copy-check" />
+      <span class="u-label contact__copy-label">Copy</span>
+    </button>
+  </div>
+
+  <ul class="contact__links">
+    {
+      links.map((link) => (
+        <li>
+          <a
+            class="contact__link"
+            href={link.href}
+            {...link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+          >
+            <Icon name={link.icon} size={16} />
+            <span class="contact__link-label u-label">{link.label}</span>
+            <span class="contact__link-value u-data">{link.value}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .contact { display: flex; flex-direction: column; gap: var(--space-6); }
+
+  .contact__prompt {
+    font-size: var(--fs-lead);
+    color: var(--text-secondary);
+    max-width: var(--measure);
+  }
+
+  .contact__address {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .contact__email {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    align-self: flex-start;
+    font-size: clamp(1.5rem, 0.9rem + 2.6vw, 3rem);
+    font-weight: var(--wt-bold);
+    letter-spacing: var(--tr-heading);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .contact__email-text {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 2px;
+    transition: background-size var(--dur-3) var(--ease-standard);
+  }
+
+  .contact__email:hover,
+  .contact__email:focus-visible { color: var(--signal); }
+
+  .contact__email:hover .contact__email-text,
+  .contact__email:focus-visible .contact__email-text { background-size: 100% 2px; }
+
+  .contact__email-icon { transition: transform var(--dur-2) var(--ease-standard); }
+  .contact__email:hover .contact__email-icon { transform: translateX(4px); }
+
+  /* Copy confirms itself in place: the label becomes the result, so
+     no toast has to appear and disappear somewhere else. */
+  .contact__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 2rem;
+    padding-inline: var(--space-3);
+    border: var(--hairline) solid var(--border-strong);
+    border-radius: var(--r-sm);
+    color: var(--text-secondary);
+    transition:
+      border-color var(--dur-2) var(--ease-standard),
+      color var(--dur-2) var(--ease-standard);
+  }
+
+  .contact__copy:hover { border-color: var(--signal); color: var(--signal); }
+
+  .contact__copy-check {
+    width: 0;
+    opacity: 0;
+    transition:
+      width var(--dur-2) var(--ease-standard),
+      opacity var(--dur-2) var(--ease-standard);
+  }
+
+  .contact__copy[data-copied] {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .contact__copy[data-copied] .contact__copy-check { width: 13px; opacity: 1; }
+
+  .contact__links {
+    display: grid;
+    grid-template-columns: 1fr;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .contact__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    border-bottom: var(--hairline) solid var(--border-hairline);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-standard),
+                padding-left var(--dur-2) var(--ease-standard);
+  }
+
+  .contact__link:hover { color: var(--text-primary); padding-left: var(--space-2); }
+
+  .contact__link-value { margin-left: auto; font-size: var(--fs-sm); color: var(--text-muted); }
+
+  @media (min-width: 52rem) {
+    .contact__links { grid-template-columns: repeat(3, 1fr); border-top: none; }
+    .contact__link {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-5) var(--space-4) var(--space-5) 0;
+      border-top: var(--hairline) solid var(--border-hairline);
+      border-bottom: none;
+    }
+    .contact__link-value { margin-left: 0; }
+    .contact__link:hover { padding-left: var(--space-2); }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
+    const label = button.querySelector('.contact__copy-label');
+    const original = label?.textContent ?? 'Copy';
+    let timer: number | undefined;
+
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+      } catch {
+        // Clipboard access denied — the address is still selectable.
+        return;
+      }
+      if (label) label.textContent = 'Copied';
+      button.setAttribute('data-copied', '');
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (label) label.textContent = original;
+        button.removeAttribute('data-copied');
+      }, 1800);
+    });
+  });
+</script>

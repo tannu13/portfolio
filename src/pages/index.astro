@@ -1,17 +1,66 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/organisms/Navbar.astro';
+import Hero from '../components/sections/Hero.astro';
+import Projects from '../components/sections/Projects.astro';
+import Experience from '../components/sections/Experience.astro';
+import Expertise from '../components/sections/Expertise.astro';
+import Contact from '../components/sections/Contact.astro';
+import Ruler from '../components/atoms/Ruler.astro';
+import { site, navItems } from '../data/site';
 
+const year = new Date().getFullYear();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={site.seo.title} description={site.seo.description}>
+  <Navbar
+    items={navItems}
+    brand={site.monogram}
+    brandHref="#home"
+    resumeHref={site.resumeUrl}
+  />
+
+  <main id="main">
+    <Hero />
+    <Projects />
+    <Experience />
+    <Expertise />
+    <Contact />
+  </main>
+
+  <footer class="foot">
+    <div class="u-container foot__inner">
+      <Ruler />
+      <div class="foot__row">
+        <span class="u-label foot__name">{site.name}</span>
+        <span class="u-data foot__meta">© {year} · Built with Astro · No trackers</span>
+        <a class="u-label foot__top" href="#home">Back to top</a>
+      </div>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  .foot { padding-block: var(--space-7) var(--space-8); }
+
+  .foot__inner { display: flex; flex-direction: column; gap: var(--space-5); }
+
+  .foot__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-5);
+    color: var(--text-muted);
+  }
+
+  .foot__meta { font-size: var(--fs-micro); }
+
+  .foot__top {
+    margin-left: auto;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .foot__top:hover { color: var(--signal); }
+</style>

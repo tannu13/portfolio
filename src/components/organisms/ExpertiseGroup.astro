@@ -1,0 +1,68 @@
+---
+/**
+ * ExpertiseGroup — typography, not logos. The capability is the
+ * heading; the technologies are evidence listed underneath it.
+ */
+interface Props {
+  title: string;
+  summary?: string;
+  items: string[];
+  class?: string;
+}
+
+const { title, summary, items, class: className } = Astro.props;
+---
+
+<div class:list={['xg', className]}>
+  <div class="xg__head">
+    <h3 class="xg__title">{title}</h3>
+    {summary && <p class="xg__summary">{summary}</p>}
+  </div>
+  <ul class="xg__items">
+    {items.map((item) => <li class="xg__item u-data">{item}</li>)}
+  </ul>
+</div>
+
+<style>
+  .xg {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-5);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .xg__title {
+    font-size: var(--fs-h3);
+    letter-spacing: var(--tr-heading);
+  }
+
+  .xg__summary {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    max-width: 32ch;
+  }
+
+  .xg__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-content: flex-start;
+  }
+
+  .xg__item {
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .xg__item:hover { color: var(--signal); }
+
+  @media (min-width: 52rem) {
+    .xg { grid-template-columns: minmax(14rem, 22rem) minmax(0, 1fr); gap: var(--space-7); }
+  }
+</style>

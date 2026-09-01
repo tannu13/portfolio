@@ -1,0 +1,299 @@
+---
+import ThemeToggle from '../atoms/ThemeToggle.astro';
+import Button from '../atoms/Button.astro';
+import Icon from '../atoms/Icon.astro';
+
+/**
+ * Navbar — sticky, compact, and always showing where you are. The
+ * active marker is a tick on the rule, matching the ruler used to
+ * divide the page.
+ */
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  items: NavItem[];
+  brand?: string;
+  brandHref?: string;
+  resumeHref?: string;
+  class?: string;
+}
+
+const {
+  items,
+  brand = 'TP',
+  brandHref = '#home',
+  resumeHref = '/resume.pdf',
+  class: className,
+} = Astro.props;
+---
+
+<header class:list={['nav', className]} data-nav>
+  <div class="nav__inner u-container">
+    <a class="nav__brand" href={brandHref}>
+      <span class="nav__monogram u-data">{brand}</span>
+      <span class="u-visually-hidden">Back to top</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Sections">
+      <ul class="nav__list">
+        {
+          items.map((item) => (
+            <li>
+              <a class="nav__link u-label" href={item.href} data-nav-link>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__actions">
+      <Button href={resumeHref} variant="secondary" size="sm" icon="download" class="nav__resume">
+        Resume
+      </Button>
+      <ThemeToggle />
+      <button
+        class="nav__menu"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-panel"
+        aria-label="Open menu"
+        data-nav-menu
+      >
+        <Icon name="menu" size={18} class="nav__menu-open" />
+        <Icon name="close" size={18} class="nav__menu-close" />
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__panel" id="nav-panel" data-nav-panel hidden>
+    <ul class="nav__panel-list">
+      {
+        items.map((item) => (
+          <li>
+            <a class="nav__panel-link" href={item.href} data-nav-link>
+              <span class="u-data nav__panel-index" aria-hidden="true" />
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a class="nav__panel-link" href={resumeHref}>Resume</a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-nav);
+    background-color: var(--scrim);
+    backdrop-filter: blur(12px) saturate(1.4);
+    box-shadow: var(--shadow-nav);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    height: 3.75rem;
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: var(--hairline) solid var(--border-contrast);
+    border-radius: var(--r-sm);
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-standard),
+                color var(--dur-2) var(--ease-standard);
+  }
+
+  .nav__brand:hover { border-color: var(--signal); color: var(--signal); }
+
+  .nav__monogram {
+    font-size: var(--fs-micro);
+    font-weight: var(--wt-bold);
+    letter-spacing: 0.02em;
+  }
+
+  .nav__links { display: none; }
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav__link {
+    position: relative;
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .nav__link:hover { color: var(--text-primary); }
+
+  /* the active marker: a tick that slides along the rule */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: 0;
+    height: 2px;
+    background-color: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-2) var(--ease-standard);
+  }
+
+  .nav__link[data-active] { color: var(--text-primary); }
+  .nav__link[data-active]::after { transform: scaleX(1); }
+
+  .nav__actions { display: flex; align-items: center; gap: var(--space-2); }
+
+  .nav__resume { display: none; }
+
+  .nav__menu {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: var(--hairline) solid var(--border-strong);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+  }
+
+  .nav__menu-open, .nav__menu-close { grid-area: 1 / 1; }
+  .nav__menu-close { opacity: 0; }
+  .nav__menu[aria-expanded='true'] .nav__menu-open { opacity: 0; }
+  .nav__menu[aria-expanded='true'] .nav__menu-close { opacity: 1; }
+
+  .nav__panel {
+    border-top: var(--hairline) solid var(--border-hairline);
+    background-color: var(--surface-page);
+    padding: var(--space-3) 0 var(--space-5);
+  }
+
+  .nav__panel[hidden] { display: none; }
+
+  .nav__panel-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: navitem;
+  }
+
+  .nav__panel-link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--gutter);
+    font-size: var(--fs-h4);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+    text-decoration: none;
+    border-bottom: var(--hairline) solid var(--border-hairline);
+    transition: color var(--dur-2) var(--ease-standard);
+  }
+
+  .nav__panel-link:hover,
+  .nav__panel-link[data-active] { color: var(--signal); }
+
+  .nav__panel-index {
+    counter-increment: navitem;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .nav__panel-index::before { content: counter(navitem, decimal-leading-zero); }
+
+  @media (min-width: 52rem) {
+    .nav__links { display: block; }
+    .nav__resume { display: inline-flex; }
+    .nav__menu { display: none; }
+    .nav__panel { display: none; }
+  }
+</style>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  if (nav) {
+    const menu = nav.querySelector<HTMLButtonElement>('[data-nav-menu]');
+    const panel = nav.querySelector<HTMLElement>('[data-nav-panel]');
+    const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('[data-nav-link]'));
+
+    /* --- compact menu --- */
+    const setOpen = (open: boolean) => {
+      if (!menu || !panel) return;
+      menu.setAttribute('aria-expanded', String(open));
+      menu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      panel.hidden = !open;
+    };
+
+    menu?.addEventListener('click', () =>
+      setOpen(menu.getAttribute('aria-expanded') !== 'true')
+    );
+
+    panel?.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        menu.focus();
+      }
+    });
+
+    /* --- where am I --- */
+    const targets = links
+      .map((link) => {
+        const id = link.getAttribute('href') || '';
+        return id.startsWith('#') ? document.querySelector(id) : null;
+      })
+      .filter((el): el is Element => Boolean(el));
+
+    if (targets.length && 'IntersectionObserver' in window) {
+      const visible = new Set<string>();
+
+      const mark = () => {
+        // The topmost section still on screen owns the marker.
+        const active = targets.find((t) => visible.has(t.id))?.id;
+        links.forEach((link) =>
+          link.toggleAttribute('data-active', link.getAttribute('href') === `#${active}`)
+        );
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) visible.add(entry.target.id);
+            else visible.delete(entry.target.id);
+          }
+          mark();
+        },
+        { rootMargin: '-30% 0px -55% 0px', threshold: 0 }
+      );
+
+      targets.forEach((target) => observer.observe(target));
+    }
+  }
+</script>

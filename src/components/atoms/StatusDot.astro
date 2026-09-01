@@ -1,0 +1,58 @@
+---
+/**
+ * StatusDot — marks a link that reaches something running. The ring
+ * pulse is the only ambient animation in the system; it stops for
+ * reduced-motion visitors and the dot alone still carries the state.
+ */
+interface Props {
+  state?: 'live' | 'idle' | 'planned';
+  label?: string;
+}
+
+const { state = 'live', label } = Astro.props;
+---
+
+<span class:list={['dot', `dot--${state}`]}>
+  <span class="dot__core"></span>
+  {label && <span class="u-label dot__label">{label}</span>}
+</span>
+
+<style>
+  .dot {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+  }
+
+  .dot__core {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--r-pill);
+    background-color: currentColor;
+  }
+
+  .dot--live { color: var(--signal); }
+  .dot--idle { color: var(--text-muted); }
+  .dot--planned { color: var(--caution); }
+
+  .dot--live .dot__core::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: var(--r-pill);
+    border: var(--hairline) solid currentColor;
+    animation: ping 2.4s var(--ease-standard) infinite;
+  }
+
+  @keyframes ping {
+    0%   { transform: scale(0.6); opacity: 0.9; }
+    70%  { transform: scale(1.6); opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot--live .dot__core::after { animation: none; opacity: 0.35; transform: none; }
+  }
+</style>

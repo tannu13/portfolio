@@ -1,0 +1,58 @@
+---
+import Eyebrow from '../atoms/Eyebrow.astro';
+
+/**
+ * SectionHeading — index, title and lede sitting on the ruler. The
+ * index is a real position in the page's sequence, not decoration.
+ */
+interface Props {
+  index?: string;
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  level?: 2 | 3;
+  id?: string;
+  class?: string;
+}
+
+const { index, eyebrow, title, lede, level = 2, id, class: className } = Astro.props;
+const Title = `h${level}` as 'h2' | 'h3';
+---
+
+<header class:list={['sh', className]}>
+  <div class="sh__axis">
+    <Eyebrow tick={!index}>{eyebrow}</Eyebrow>
+    {index && <span class="sh__index u-data">{index}</span>}
+    <div class="u-ruler sh__rule"></div>
+  </div>
+  <Title class="sh__title" id={id}>{title}</Title>
+  {lede && <p class="sh__lede u-measure">{lede}</p>}
+</header>
+
+<style>
+  .sh { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  .sh__axis {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .sh__index {
+    order: -1;
+    font-size: var(--fs-label);
+    font-weight: var(--wt-semi);
+    color: var(--signal);
+    letter-spacing: 0.04em;
+  }
+
+  .sh__rule { flex: 1; align-self: flex-start; margin-top: 0.1em; }
+
+  .sh__title { margin-top: var(--space-1); }
+
+  .sh__lede {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-prose);
+    color: var(--text-secondary);
+  }
+</style>

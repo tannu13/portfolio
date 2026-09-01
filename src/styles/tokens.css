@@ -1,0 +1,276 @@
+/* ==================================================================
+   DESIGN TOKENS — "Instrument"
+   ------------------------------------------------------------------
+   Two layers:
+     1. Primitives  (--n-*, --jade-*, ...)  raw values, never used in
+        component CSS directly.
+     2. Semantics   (--surface-*, --text-*, --signal, ...) the only
+        tokens components are allowed to reference.
+   Theming happens exclusively by remapping layer 2.
+   ================================================================== */
+
+:root {
+  /* ---------- 1. PRIMITIVES ------------------------------------- */
+
+  /* Neutral ramp — graphite with a faint petrol-green cast, the
+     colour of drafting vellum and of a scope screen at rest.        */
+  --n-0:   #ffffff;
+  --n-25:  #fafbf9;
+  --n-50:  #f1f4f1;
+  --n-100: #e6eae6;
+  --n-150: #d9ded9;
+  --n-200: #c4ccc6;
+  --n-300: #a2aca6;
+  --n-400: #78847e;
+  --n-500: #57635d;
+  --n-600: #3f4a45;
+  --n-700: #2a3531;
+  --n-800: #1a2320;
+  --n-900: #131b19;
+  --n-950: #0e1513;
+
+  /* Jade — SIGNAL. Live data, active state, throughput. */
+  --jade-600: #076b52;
+  --jade-500: #0b7a5e;
+  --jade-400: #16a37c;
+  --jade-300: #46d9a8;
+  --jade-200: #8ceccc;
+
+  /* Ultramarine — FLOW. Structure, links, synchronous paths. */
+  --ultra-600: #2334ad;
+  --ultra-500: #2c3fcf;
+  --ultra-400: #5567ec;
+  --ultra-300: #8b97ff;
+  --ultra-200: #bcc3ff;
+
+  /* Amber — CAUTION. Trade-offs, failure paths, retries. */
+  --amber-600: #855507;
+  --amber-500: #9a6407;
+  --amber-400: #c98a1c;
+  --amber-300: #e3a84a;
+  --amber-200: #f2cf94;
+
+  /* ---------- 2. TYPOGRAPHY ------------------------------------- */
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+  --font-code: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  /* Fluid scale. Ratio ~1.2 at 360px opening to ~1.33 at 1440px. */
+  --fs-display: clamp(3rem, 1.35rem + 7vw, 6.25rem);
+  --fs-h1:      clamp(2.25rem, 1.55rem + 3.1vw, 4rem);
+  --fs-h2:      clamp(1.75rem, 1.4rem + 1.55vw, 2.625rem);
+  --fs-h3:      clamp(1.25rem, 1.13rem + 0.55vw, 1.625rem);
+  --fs-h4:      clamp(1.0625rem, 1.02rem + 0.2vw, 1.1875rem);
+  --fs-lead:    clamp(1.0625rem, 1rem + 0.42vw, 1.25rem);
+  --fs-body:    1rem;
+  --fs-sm:      0.9375rem;
+  --fs-label:   0.75rem;
+  --fs-micro:   0.6875rem;
+
+  --lh-display: 0.92;
+  --lh-tight:   1.08;
+  --lh-snug:    1.22;
+  --lh-normal:  1.5;
+  --lh-prose:   1.68;
+
+  --tr-display: -0.035em;
+  --tr-heading: -0.02em;
+  --tr-body:    0em;
+  --tr-label:   0.08em;
+
+  --wt-regular: 400;
+  --wt-medium:  500;
+  --wt-semi:    600;
+  --wt-bold:    700;
+
+  /* Width axis — the mono is wide by default; labels are condensed
+     so they read as stamped equipment markings, not as body copy. */
+  --wd-label: 87.5%;
+  --wd-data:  100%;
+
+  /* ---------- 3. SPACE & LAYOUT --------------------------------- */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.5rem;
+  --space-6:  2rem;
+  --space-7:  3rem;
+  --space-8:  4rem;
+  --space-9:  6rem;
+  --space-10: 8rem;
+
+  --section-y: clamp(4rem, 3rem + 7vw, 8.5rem);
+  --gutter:    clamp(1.25rem, 0.75rem + 3vw, 3rem);
+  --content-max: 74rem;
+  --measure:     66ch;
+
+  --grid-unit: 4px;
+
+  /* ---------- 4. SHAPE ------------------------------------------ */
+  --r-xs:   2px;
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   10px;
+  --r-pill: 999px;
+  --hairline: 1px;
+
+  /* ---------- 5. MOTION ----------------------------------------- */
+  --dur-1: 90ms;    /* state echo: hover, press */
+  --dur-2: 160ms;   /* control transitions */
+  --dur-3: 260ms;   /* disclosure, reveal */
+  --dur-4: 420ms;   /* section entrance */
+  --dur-flow: 2600ms; /* a packet crossing a diagram */
+
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-snap:     cubic-bezier(0.85, 0, 0.15, 1);
+
+  /* ---------- 6. LAYERS ----------------------------------------- */
+  --z-base: 0;
+  --z-diagram-edge: 1;
+  --z-diagram-node: 2;
+  --z-sticky: 50;
+  --z-nav: 100;
+  --z-overlay: 200;
+}
+
+/* ==================================================================
+   SEMANTIC LAYER — LIGHT (default)
+   ================================================================== */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --surface-page:   var(--n-50);
+  --surface-raised: var(--n-25);
+  --surface-sunken: var(--n-100);
+  --surface-inset:  var(--n-150);
+  --surface-inverse: var(--n-900);
+
+  --text-primary:   var(--n-900);
+  --text-secondary: var(--n-600);
+  --text-muted:     var(--n-400);
+  --text-inverse:   var(--n-25);
+
+  --border-hairline: var(--n-150);
+  --border-strong:   var(--n-200);
+  --border-contrast: var(--n-700);
+
+  --signal:        var(--jade-500);
+  --signal-strong: var(--jade-600);
+  --signal-soft:   color-mix(in srgb, var(--jade-500) 10%, transparent);
+  --signal-edge:   color-mix(in srgb, var(--jade-500) 34%, transparent);
+  --on-signal:     var(--n-25);
+
+  --flow:        var(--ultra-500);
+  --flow-strong: var(--ultra-600);
+  --flow-soft:   color-mix(in srgb, var(--ultra-500) 9%, transparent);
+  --flow-edge:   color-mix(in srgb, var(--ultra-500) 32%, transparent);
+
+  --caution:      var(--amber-500);
+  --caution-soft: color-mix(in srgb, var(--amber-500) 12%, transparent);
+  --caution-edge: color-mix(in srgb, var(--amber-500) 36%, transparent);
+
+  --focus-ring: var(--ultra-500);
+
+  --shadow-raise: 0 1px 1px rgba(16, 26, 24, 0.04),
+                  0 10px 28px -18px rgba(16, 26, 24, 0.28);
+  --shadow-nav:   0 1px 0 var(--border-hairline);
+
+  --scrim: color-mix(in srgb, var(--n-50) 82%, transparent);
+}
+
+/* ==================================================================
+   SEMANTIC LAYER — DARK
+   Not a pure black. Deep petrol so jade and ultramarine sit on a
+   surface that shares their family rather than fighting it.
+   ================================================================== */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --surface-page:   var(--n-950);
+  --surface-raised: var(--n-900);
+  --surface-sunken: #0a100e;
+  --surface-inset:  var(--n-800);
+  --surface-inverse: var(--n-50);
+
+  --text-primary:   #e8ede9;
+  --text-secondary: #9fada7;
+  --text-muted:     #6d7a74;
+  --text-inverse:   var(--n-950);
+
+  --border-hairline: #202b28;
+  --border-strong:   #2d3a36;
+  --border-contrast: #4a5854;
+
+  --signal:        var(--jade-300);
+  --signal-strong: var(--jade-200);
+  --signal-soft:   color-mix(in srgb, var(--jade-300) 12%, transparent);
+  --signal-edge:   color-mix(in srgb, var(--jade-300) 40%, transparent);
+  --on-signal:     var(--n-950);
+
+  --flow:        var(--ultra-300);
+  --flow-strong: var(--ultra-200);
+  --flow-soft:   color-mix(in srgb, var(--ultra-300) 12%, transparent);
+  --flow-edge:   color-mix(in srgb, var(--ultra-300) 38%, transparent);
+
+  --caution:      var(--amber-300);
+  --caution-soft: color-mix(in srgb, var(--amber-300) 13%, transparent);
+  --caution-edge: color-mix(in srgb, var(--amber-300) 40%, transparent);
+
+  --focus-ring: var(--ultra-300);
+
+  --shadow-raise: 0 1px 0 rgba(255, 255, 255, 0.03),
+                  0 16px 40px -24px rgba(0, 0, 0, 0.8);
+  --shadow-nav:   0 1px 0 var(--border-hairline);
+
+  --scrim: color-mix(in srgb, var(--n-950) 82%, transparent);
+}
+
+/* System preference applies until the visitor states one. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --surface-page:   var(--n-950);
+    --surface-raised: var(--n-900);
+    --surface-sunken: #0a100e;
+    --surface-inset:  var(--n-800);
+    --surface-inverse: var(--n-50);
+
+    --text-primary:   #e8ede9;
+    --text-secondary: #9fada7;
+    --text-muted:     #6d7a74;
+    --text-inverse:   var(--n-950);
+
+    --border-hairline: #202b28;
+    --border-strong:   #2d3a36;
+    --border-contrast: #4a5854;
+
+    --signal:        var(--jade-300);
+    --signal-strong: var(--jade-200);
+    --signal-soft:   color-mix(in srgb, var(--jade-300) 12%, transparent);
+    --signal-edge:   color-mix(in srgb, var(--jade-300) 40%, transparent);
+    --on-signal:     var(--n-950);
+
+    --flow:        var(--ultra-300);
+    --flow-strong: var(--ultra-200);
+    --flow-soft:   color-mix(in srgb, var(--ultra-300) 12%, transparent);
+    --flow-edge:   color-mix(in srgb, var(--ultra-300) 38%, transparent);
+
+    --caution:      var(--amber-300);
+    --caution-soft: color-mix(in srgb, var(--amber-300) 13%, transparent);
+    --caution-edge: color-mix(in srgb, var(--amber-300) 40%, transparent);
+
+    --focus-ring: var(--ultra-300);
+
+    --shadow-raise: 0 1px 0 rgba(255, 255, 255, 0.03),
+                    0 16px 40px -24px rgba(0, 0, 0, 0.8);
+    --scrim: color-mix(in srgb, var(--n-950) 82%, transparent);
+  }
+}

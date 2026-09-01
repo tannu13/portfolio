@@ -1,0 +1,83 @@
+---
+/**
+ * Reveal — brings an element in the first time it is seen, then gets
+ * out of the way. Used to lead the eye down the page in reading
+ * order, never to make an entrance for its own sake.
+ *
+ * Without JavaScript, or with reduced motion requested, the content is
+ * simply already there.
+ */
+interface Props {
+  variant?: 'rise' | 'slide' | 'scale' | 'fade' | 'rule';
+  /** Milliseconds after the element is first seen. Use small, ordered
+      steps (60–90ms) to stagger a list; never more than ~400ms. */
+  delay?: number;
+  as?: 'div' | 'span' | 'li' | 'section' | 'header' | 'article';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'rise',
+  delay = 0,
+  as: Tag = 'div',
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<Tag
+  class={className}
+  data-reveal={variant}
+  style={delay ? `--reveal-delay:${delay}ms` : undefined}
+  {...rest}
+>
+  <slot />
+</Tag>
+
+<script>
+  const root = document.documentElement;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const revealAll = () =>
+    document
+      .querySelectorAll('[data-reveal]')
+      .forEach((el) => el.setAttribute('data-revealed', ''));
+
+  if (reduced.matches || !('IntersectionObserver' in window)) {
+    revealAll();
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute('data-revealed', '');
+          observer.unobserve(entry.target);
+        }
+      },
+      // Fires a little before the element reaches the fold, so the
+      // movement has finished by the time it is being read.
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.01 }
+    );
+
+    const watch = () =>
+      document
+        .querySelectorAll('[data-reveal]:not([data-revealed])')
+        .forEach((el) => observer.observe(el));
+
+    watch();
+
+    // Anything already past the fold on load should not wait.
+    requestAnimationFrame(() => {
+      document.querySelectorAll('[data-reveal]:not([data-revealed])').forEach((el) => {
+        if (el.getBoundingClientRect().top < 0) el.setAttribute('data-revealed', '');
+      });
+    });
+
+    reduced.addEventListener('change', (event) => {
+      if (event.matches) revealAll();
+    });
+  }
+
+  root.setAttribute('data-reveal-ready', '');
+</script>
