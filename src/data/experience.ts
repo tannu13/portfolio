@@ -25,7 +25,7 @@ export const roles: Role[] = [
     role: "Software Engineer",
     location: "Singapore",
     from: "2021-04",
-    to: "2022-11",
+    to: "2022-10",
     stories: [
       "Built React workflows for authoring interactive video advertising.",
       "Connected the React authoring tool to a lightweight Preact ad player over iframe and postMessage, keeping the two in sync without coupling their runtimes.",

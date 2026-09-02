@@ -18,7 +18,7 @@ export const site = {
   monogram: "TP",
   title: "Full-Stack Engineer · Distributed Systems · AI",
   positioning:
-    "Full-stack engineer with 7+ years building and scaling production systems, with a focus on performance, reliability, distributed systems and AI engineering.",
+    "Full-stack engineer with 7+ years building and scaling production systems, with a focus on performance, reliability, observable distributed systems and AI engineering.",
   email: "tanujpant13@gmail.com",
   githubUrl: `https://github.com/${GITHUB_USER}`,
   githubHandle: `@${GITHUB_USER}`,
