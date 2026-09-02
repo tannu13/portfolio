@@ -131,6 +131,16 @@ script, so without JavaScript nothing is ever hidden.
 
 It plays once, the first time the diagram is seen.
 
+**Focus tracking.** The career trace marks whichever experience is crossing the
+middle of the viewport, on a passive scroll listener throttled to a frame that
+returns immediately once the answer stops changing. Only the active/inactive
+state changes; the segments themselves never move.
+
+**A constraint worth knowing.** `transform` on an ancestor makes it the
+containing block for `position: sticky` descendants. Section bodies therefore
+reveal with `fade` rather than `rise` — a rising section body would silently
+break any sticky child inside it.
+
 **Feedback.** Short and local, never longer than 260ms: controls sink 1px and
 their trailing arrow steps forward; link underlines measure themselves out from
 the left; the disclosure marker turns as it changes sign; the active nav tick
@@ -154,16 +164,19 @@ src/components/
 ├── atoms/        Icon · Button · TextLink · Tag · Eyebrow · Ruler
 │                 StatusDot · ThemeToggle · ArchNode
 ├── molecules/    SectionHeading · TagList · MetricReadout · Disclosure
-│                 LinkRow · TraceScale · TraceLane
-├── organisms/    Navbar · ArchitectureDiagram · ProjectBlock
-│                 ExperienceEntry · ExpertiseGroup · ContactBlock
+│                 LinkRow
+├── organisms/    Navbar · ArchitectureDiagram · CareerTrace · ProjectBlock
+│                 ExperienceEntry · ExpertiseGroup · ContactBlock · DeepDive
 └── templates/    Section
 ```
 
-`TraceLane` is the signature: a career reads like a distributed trace —
-overlapping spans on one axis, each with a start, a duration and the operations
-inside it. It keeps Experience quieter than Projects while still carrying real
-information.
+`CareerTrace` is the signature: a career reads like a distributed trace — one
+axis, three segments, each with a start and a duration. It sticks under the
+navigation for the length of the Experience section, so the timeline is a
+persistent map rather than something the reader has to remember from the top of
+the section. Two states only: the segment being read is `--signal`, the rest are
+the same grey as the rule they sit on. It keeps Experience quieter than
+Projects while still carrying real information.
 
 ---
 

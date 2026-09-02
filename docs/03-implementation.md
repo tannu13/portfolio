@@ -52,8 +52,9 @@ a data change. Notably:
   notes — rendered into a native `<details>` so they stay on the page and stay
   in the document.
 - **The career axis is derived.** Each role carries `from`/`to` as `YYYY-MM`;
-  the span positions and the axis ticks are computed from those, so the
-  timeline cannot drift from the dates.
+  the segment positions and the axis ticks are computed from those, so the
+  timeline cannot drift from the dates. A role carries no colour of its own —
+  the trace has two states and decides them from scroll position.
 - **Missing links are modelled, not faked.** `demoUrl: null` renders a pending
   marker instead of a link that goes nowhere.
 
@@ -65,7 +66,10 @@ a data change. Notably:
              project diagrams use
 #projects    Two case studies, each with its architecture in place and its
              deep dive underneath
-#experience  Three roles as spans on one career trace, quieter than projects
+#experience  Three roles as segments of one career trace. The timeline is
+             sticky for the length of the section, so entering it at any scroll
+             position still shows the whole 2018–2026 run and which part of it
+             is being read
 #expertise   Five capability groups, typography only
 #contact     One address, three links
 ```

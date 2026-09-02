@@ -33,7 +33,9 @@ const { id, index, eyebrow, title, lede, tone = 'page', bleed = false, class: cl
         class="section__heading"
       />
     </Reveal>
-    <Reveal class="section__body" delay={90}>
+    {/* fade, not rise: a transform here would become the containing
+        block for any sticky child of the section. */}
+    <Reveal variant="fade" class="section__body" delay={90}>
       <slot />
     </Reveal>
   </div>

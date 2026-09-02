@@ -1,4 +1,4 @@
-import type { Role } from "./types";
+import type { Role, TraceSegment } from "./types";
 
 export const roles: Role[] = [
   {
@@ -8,8 +8,6 @@ export const roles: Role[] = [
     location: "Australia",
     from: "2022-11",
     to: "2026-01",
-    current: true,
-    tone: "signal",
     stories: [
       "Led the migration from a monolith to REST-based microservices, defining service boundaries and the API contracts between them.",
       "Designed virtualised data tables holding 10K+ records that stayed responsive under inline and bulk editing.",
@@ -28,7 +26,6 @@ export const roles: Role[] = [
     location: "Singapore",
     from: "2021-04",
     to: "2022-11",
-    tone: "flow",
     stories: [
       "Built React workflows for authoring interactive video advertising.",
       "Connected the React authoring tool to a lightweight Preact ad player over iframe and postMessage, keeping the two in sync without coupling their runtimes.",
@@ -80,7 +77,7 @@ export const axisTicks = [2018, 2020, 2022, 2024, 2026]
   .map((year) => ({ label: String(year), at: positionOf(`${year}-01`) }))
   .map((tick) => ({ ...tick, at: Math.max(0, Math.min(100, tick.at)) }));
 
-export const periodOf = (role: Role) => {
+export const periodOf = (role: Role): string => {
   const format = (ym: string) => {
     const [year, month] = ym.split("-").map(Number);
     const name = [
@@ -99,5 +96,15 @@ export const periodOf = (role: Role) => {
     ][month - 1];
     return `${name} ${year}`;
   };
-  return `${format(role.from)} - ${format(role.to)}`;
+  return `${format(role.from)} – ${format(role.to)}`;
 };
+
+/** The segments drawn on the persistent career trace, in the same
+    order the entries appear. */
+export const careerSegments: TraceSegment[] = roles.map((role) => ({
+  id: role.id,
+  label: role.company,
+  period: periodOf(role),
+  start: positionOf(role.from),
+  end: positionOf(role.to),
+}));

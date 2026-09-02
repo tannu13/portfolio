@@ -1,0 +1,237 @@
+---
+/**
+ * CareerTrace — the section's signature, and its map.
+ *
+ * One axis, three segments, always all three visible. It sticks under
+ * the navigation for the length of the Experience section, so a reader
+ * who enters halfway down can still see that these are parts of one
+ * continuous run and which part they are reading.
+ *
+ * Two states only: the segment in focus is signal green, the rest are
+ * the same grey as the rule they sit on. Nothing else about a segment
+ * changes — the interaction is context, not a performance.
+ */
+import type { TraceSegment } from '../../data/types';
+
+interface Props {
+  segments: TraceSegment[];
+  ticks: { label: string; at: number }[];
+  class?: string;
+}
+
+const { segments, ticks, class: className } = Astro.props;
+
+const first = segments[0];
+const spanLabel = `Career timeline, ${segments[segments.length - 1].period.split(' – ')[0]} to ${
+  segments[0].period.split(' – ')[1]
+}: ${segments.map((s) => s.label).join(', ')}.`;
+---
+
+<div class:list={['trace', className]} data-career-trace>
+  <div class="trace__head" aria-hidden="true">
+    <span class="trace__now u-label">Reading</span>
+    <span class="trace__label" data-trace-label>{first.label}</span>
+    <span class="trace__period u-data" data-trace-period>{first.period}</span>
+  </div>
+
+  <div class="trace__axis" role="img" aria-label={spanLabel}>
+    <div class="trace__years">
+      {
+        ticks.map((tick) => (
+          <span class="trace__tick u-label" style={`--at:${tick.at}%`}>
+            {tick.label}
+          </span>
+        ))
+      }
+    </div>
+
+    <div class="trace__track">
+      {
+        segments.map((segment) => (
+          <span
+            class="trace__segment"
+            data-trace-segment={segment.id}
+            data-label={segment.label}
+            data-period={segment.period}
+            data-active={segment.id === first.id ? '' : undefined}
+            style={`--start:${segment.start}%; --span:${segment.end - segment.start}%`}
+          />
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  .trace {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: var(--z-sticky);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    /* Opaque, because the entries scroll underneath it. */
+    background-color: var(--surface-raised);
+    padding-block: var(--space-4);
+    border-bottom: var(--hairline) solid var(--border-hairline);
+    margin-bottom: var(--space-5);
+  }
+
+  .trace__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .trace__now { color: var(--text-muted); }
+
+  .trace__label {
+    font-size: var(--fs-h4);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+  }
+
+  .trace__period {
+    margin-left: auto;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .trace__axis { display: flex; flex-direction: column; }
+
+  /* Years above the rule, exactly as the section already read. */
+  .trace__years {
+    position: relative;
+    height: 1.1rem;
+    border-bottom: var(--hairline) solid var(--border-strong);
+  }
+
+  .trace__tick {
+    position: absolute;
+    left: var(--at);
+    bottom: 0;
+    transform: translateX(-50%);
+    padding-bottom: var(--space-2);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .trace__tick::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: var(--hairline);
+    height: 5px;
+    background-color: var(--border-strong);
+  }
+
+  .trace__tick:first-child { transform: none; }
+  .trace__tick:first-child::after { left: 0; }
+  .trace__tick:last-child { transform: translateX(-100%); }
+  .trace__tick:last-child::after { left: auto; right: 0; }
+
+  .trace__track {
+    position: relative;
+    height: 10px;
+    margin-top: var(--space-2);
+  }
+
+  .trace__segment {
+    position: absolute;
+    top: 3px;
+    left: var(--start);
+    width: var(--span);
+    height: 4px;
+    border-radius: var(--r-xs);
+    background-color: var(--border-strong);
+    transition:
+      background-color var(--dur-3) var(--ease-standard),
+      height var(--dur-3) var(--ease-standard),
+      top var(--dur-3) var(--ease-standard);
+  }
+
+  .trace__segment[data-active] {
+    top: 2px;
+    height: 6px;
+    background-color: var(--signal);
+  }
+
+  @media (max-width: 32rem) {
+    .trace__head { flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+    .trace__period { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<script>
+  function setupTrace(trace: HTMLElement) {
+    const section = trace.closest('section') ?? document;
+    const entries = Array.from(section.querySelectorAll<HTMLElement>('[data-trace-entry]'));
+    if (!entries.length) return;
+
+    const segments = Array.from(
+      trace.querySelectorAll<HTMLElement>('[data-trace-segment]')
+    );
+    const label = trace.querySelector<HTMLElement>('[data-trace-label]');
+    const period = trace.querySelector<HTMLElement>('[data-trace-period]');
+
+    let current = '';
+    let frame = 0;
+
+    const focused = () => {
+      // The entry the reader is actually on: the one crossing the middle
+      // of the viewport, or failing that the nearest one to it.
+      const line = window.innerHeight / 2;
+      let nearest = entries[0];
+      let distance = Infinity;
+
+      for (const entry of entries) {
+        const rect = entry.getBoundingClientRect();
+        if (rect.top <= line && rect.bottom >= line) return entry;
+        const gap = Math.min(Math.abs(rect.top - line), Math.abs(rect.bottom - line));
+        if (gap < distance) {
+          distance = gap;
+          nearest = entry;
+        }
+      }
+      return nearest;
+    };
+
+    const update = () => {
+      // Nothing to say while the section is off screen.
+      const bounds = trace.parentElement?.getBoundingClientRect();
+      if (bounds && (bounds.bottom < 0 || bounds.top > window.innerHeight)) return;
+
+      const id = focused().dataset.traceEntry;
+      if (!id || id === current) return;
+      current = id;
+
+      for (const segment of segments) {
+        const active = segment.dataset.traceSegment === id;
+        segment.toggleAttribute('data-active', active);
+        if (active) {
+          if (label) label.textContent = segment.dataset.label ?? '';
+          if (period) period.textContent = segment.dataset.period ?? '';
+        }
+      }
+    };
+
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        update();
+      });
+    };
+
+    // One passive listener, throttled to a frame, that does nothing
+    // once the answer stops changing. Cheap enough not to need gating.
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+
+    update();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-career-trace]').forEach(setupTrace);
+</script>

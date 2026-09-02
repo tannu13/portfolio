@@ -1,64 +1,50 @@
 ---
-import TraceLane from '../molecules/TraceLane.astro';
 import MetricReadout from '../molecules/MetricReadout.astro';
 
 /**
- * ExperienceEntry — a span on the career trace plus the two or three
- * operations worth reading. Deliberately quieter than a ProjectBlock:
- * hairlines, no fill, no card.
+ * ExperienceEntry — one span of the career trace, written out.
+ *
+ * The bar itself lives in CareerTrace, which stays on screen for the
+ * whole section; this is the text that belongs to it. Deliberately
+ * quieter than a ProjectBlock: hairlines, no fill, no card.
  */
 interface Props {
+  /** Matches the segment id in CareerTrace, which is how the trace
+      knows which part of the timeline is being read. */
+  id: string;
   company: string;
   role: string;
   location?: string;
   period: string;
-  start: number;
-  end: number;
   stories: string[];
   metric?: { value: string; unit?: string; label: string };
-  tone?: 'signal' | 'flow' | 'neutral';
-  current?: boolean;
   class?: string;
 }
 
-const {
-  company,
-  role,
-  location,
-  period,
-  start,
-  end,
-  stories,
-  metric,
-  tone = 'neutral',
-  current = false,
-  class: className,
-} = Astro.props;
+const { id, company, role, location, period, stories, metric, class: className } = Astro.props;
 ---
 
-<article class:list={['xp', className]}>
-  <TraceLane
-    label={company}
-    role={role}
-    meta={location}
-    duration={period}
-    start={start}
-    end={end}
-    tone={tone}
-    current={current}
-  />
+<article class:list={['xp', className]} data-trace-entry={id}>
+  <div class="xp__id">
+    <h3 class="xp__company">{company}</h3>
+    <p class="xp__role">{role}</p>
+    {location && <span class="xp__meta u-label">{location}</span>}
+    <span class="xp__period u-data">{period}</span>
+    {
+      metric && (
+        <MetricReadout
+          value={metric.value}
+          unit={metric.unit}
+          label={metric.label}
+          tone="signal"
+          size="sm"
+          class="xp__metric"
+        />
+      )
+    }
+  </div>
 
-  <div class="xp__body">
-    {metric && (
-      <MetricReadout
-        value={metric.value}
-        unit={metric.unit}
-        label={metric.label}
-        tone="signal"
-        size="sm"
-        class="xp__metric"
-      />
-    )}
+  <div class="xp__main">
     <ul class="xp__stories">
       {stories.map((story) => <li class="xp__story">{story}</li>)}
     </ul>
@@ -67,12 +53,36 @@ const {
 </article>
 
 <style>
-  .xp__body {
+  .xp {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-4);
-    padding-bottom: var(--space-6);
+    padding-block: var(--space-5) var(--space-7);
+    border-top: var(--hairline) solid var(--border-hairline);
   }
+
+  .xp:first-of-type { border-top: none; padding-top: 0; }
+
+  .xp__id {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .xp__company {
+    font-size: var(--fs-h4);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+  }
+
+  .xp__role { font-size: var(--fs-sm); color: var(--text-secondary); }
+  .xp__meta { color: var(--text-muted); }
+  .xp__period { font-size: var(--fs-micro); color: var(--text-muted); }
+
+  .xp__metric { width: 100%; }
+
+  .xp__main { display: flex; flex-direction: column; gap: var(--space-4); }
 
   .xp__stories {
     display: flex;
@@ -103,9 +113,17 @@ const {
   }
 
   @media (min-width: 52rem) {
-    .xp__body { grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); gap: var(--space-5); }
-    .xp__metric { grid-column: 1; grid-row: 1; align-self: start; }
-    .xp__stories { grid-column: 2; grid-row: 1; }
-    .xp__extra { grid-column: 2; }
+    .xp {
+      grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+
+    .xp__id {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-1);
+    }
+
+    .xp__metric { margin-top: var(--space-3); }
   }
 </style>

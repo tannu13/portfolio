@@ -70,11 +70,19 @@ export interface Role {
       derived from these, so the timeline cannot drift from the dates. */
   from: string;
   to: string;
-  current?: boolean;
-  tone?: 'signal' | 'flow' | 'neutral';
   stories: string[];
   detail?: string[];
   metric?: { value: string; unit?: string; label: string };
+}
+
+/** One company's span on the shared career axis. */
+export interface TraceSegment {
+  id: string;
+  label: string;
+  period: string;
+  /** Percentages on the shared axis, derived from the real dates. */
+  start: number;
+  end: number;
 }
 
 /* ---------- Expertise ------------------------------------------------ */

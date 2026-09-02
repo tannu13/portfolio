@@ -19,10 +19,9 @@ import TagList from '../components/molecules/TagList.astro';
 import MetricReadout from '../components/molecules/MetricReadout.astro';
 import Disclosure from '../components/molecules/Disclosure.astro';
 import LinkRow from '../components/molecules/LinkRow.astro';
-import TraceScale from '../components/molecules/TraceScale.astro';
-import TraceLane from '../components/molecules/TraceLane.astro';
 
 import ArchitectureDiagram from '../components/organisms/ArchitectureDiagram.astro';
+import CareerTrace from '../components/organisms/CareerTrace.astro';
 import ProjectBlock from '../components/organisms/ProjectBlock.astro';
 import ExperienceEntry from '../components/organisms/ExperienceEntry.astro';
 import ExpertiseGroup from '../components/organisms/ExpertiseGroup.astro';
@@ -279,8 +278,8 @@ const agentEdges = [
       >
         <div class="demo" data-reveal-demo>
           <div class="demo__row">
-            <Reveal class="demo__card" variant="rise"><span class="u-label">rise</span><p>Default. Blocks of content and section bodies.</p></Reveal>
-            <Reveal class="demo__card" variant="fade" delay={70}><span class="u-label">fade</span><p>Where movement would fight a neighbouring element.</p></Reveal>
+            <Reveal class="demo__card" variant="rise"><span class="u-label">rise</span><p>Default. Headings and blocks of content.</p></Reveal>
+            <Reveal class="demo__card" variant="fade" delay={70}><span class="u-label">fade</span><p>Section bodies, and anywhere a transform would break a sticky child.</p></Reveal>
             <Reveal class="demo__card" variant="scale" delay={140}><span class="u-label">scale</span><p>Framed things: diagrams, code, media.</p></Reveal>
           </div>
           <Reveal variant="rule" class="demo__rule" delay={210}>
@@ -480,26 +479,6 @@ const agentEdges = [
         />
       </Specimen>
 
-      <Specimen
-        name="TraceLane"
-        note="The signature. A career reads like a distributed trace — overlapping spans on one axis, each with a start and a duration. Hover a lane to thicken its span."
-        layout="stack"
-      >
-        <div class="trace">
-          <TraceScale
-            ticks={[
-              { label: '2018', at: 0 },
-              { label: '2020', at: 25 },
-              { label: '2022', at: 50 },
-              { label: '2024', at: 75 },
-              { label: '2026', at: 100 },
-            ]}
-          />
-          <TraceLane label="FreightExchange" role="Developer" meta="Australia" duration="Nov 2022 – Jan 2026" start={54} end={100} tone="signal" current />
-          <TraceLane label="Wootag" role="Software Engineer" meta="Singapore" duration="Apr 2021 – Nov 2022" start={35} end={54} tone="flow" />
-          <TraceLane label="Pinch / ACL Mobile" role="Application Developer" meta="India" duration="Jul 2018 – Mar 2021" start={0} end={35} />
-        </div>
-      </Specimen>
     </Section>
 
     <!-- ============================ ORGANISMS =================== -->
@@ -565,24 +544,37 @@ const agentEdges = [
         </ProjectBlock>
       </Specimen>
 
-      <Specimen name="ExperienceEntry" note="Quieter than a project by design: a span on the career trace plus the two or three operations worth reading." layout="stack">
+      <Specimen
+        name="CareerTrace"
+        note="The section's signature, and its map. One axis, three segments, all three always visible. It sticks under the navigation for the length of the Experience section and marks the segment the reader is on — two states only, signal for in focus and the rule's own grey for the rest."
+        layout="stack"
+      >
         <div class="trace">
-          <TraceScale
+          <CareerTrace
             ticks={[
               { label: '2018', at: 0 },
-              { label: '2022', at: 50 },
+              { label: '2020', at: 20 },
+              { label: '2022', at: 46.7 },
+              { label: '2024', at: 73.3 },
               { label: '2026', at: 100 },
             ]}
+            segments={[
+              { id: 'ds-fe', label: 'FreightExchange', period: 'Nov 2022 – Jan 2026', start: 57.8, end: 100 },
+              { id: 'ds-wootag', label: 'Wootag', period: 'Apr 2021 – Nov 2022', start: 36.7, end: 57.8 },
+              { id: 'ds-pinch', label: 'Pinch / ACL Mobile', period: 'Jul 2018 – Mar 2021', start: 0, end: 35.6 },
+            ]}
           />
+        </div>
+      </Specimen>
+
+      <Specimen name="ExperienceEntry" note="Quieter than a project by design: the text belonging to one span of the trace. Its id is what tells the trace above which segment is being read." layout="stack">
+        <div class="trace">
           <ExperienceEntry
+            id="ds-fe"
             company="FreightExchange"
             role="Developer"
             location="Australia"
             period="Nov 2022 – Jan 2026"
-            start={54}
-            end={100}
-            tone="signal"
-            current
             stories={[
               'Led the migration from a monolith to REST-based microservices, defining service boundaries and API contracts.',
               'Designed virtualised data tables holding 10K+ records with responsive inline and bulk editing.',
