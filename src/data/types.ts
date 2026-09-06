@@ -6,10 +6,16 @@
 /* ---------- Architecture diagrams ---------------------------------- */
 
 /** What a component is. Drawn as border treatment, never as colour. */
-export type NodeKind = 'client' | 'service' | 'engine' | 'store' | 'stream' | 'external';
+export type NodeKind =
+  | "client"
+  | "service"
+  | "engine"
+  | "store"
+  | "stream"
+  | "external";
 
 /** How data moves along a connection. Drawn as colour. */
-export type EdgeMode = 'sync' | 'async' | 'degraded';
+export type EdgeMode = "sync" | "async" | "degraded";
 
 export interface DiagramNode {
   id: string;
@@ -89,6 +95,5 @@ export interface TraceSegment {
 
 export interface ExpertiseArea {
   title: string;
-  summary: string;
   items: string[];
 }

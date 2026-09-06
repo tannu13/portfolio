@@ -15,7 +15,7 @@ import { expertise } from '../../data/expertise';
     {
       expertise.map((area, i) => (
         <Reveal delay={i * 50}>
-          <ExpertiseGroup title={area.title} summary={area.summary} items={area.items} />
+          <ExpertiseGroup title={area.title} items={area.items} />
         </Reveal>
       ))
     }

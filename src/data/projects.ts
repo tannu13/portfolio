@@ -13,7 +13,7 @@ export const projects: Project[] = [
     index: "01",
     title: "AI Coding Platform",
     description:
-      "An AI-powered coding platform in the shape of Lovable: isolated Kubernetes workspaces, an agent loop driven by LLM tool calling, real-time streaming, live previews, and sub-agent orchestration for focused work.",
+      "An AI-powered coding platform inspired by Lovable, with isolated Kubernetes workspaces, an agent loop driven by LLM tool calling, real-time streaming, live previews, and sub-agent orchestration for focused work.",
     technologies: [
       "TypeScript",
       "React",
