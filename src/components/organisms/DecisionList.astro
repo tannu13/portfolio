@@ -1,0 +1,86 @@
+---
+import type { EngineeringDecision } from '../../data/types';
+
+/**
+ * DecisionList — the numbered decisions a project turned on, sitting
+ * between the diagram and the deep dive. Always open: these are the
+ * five things worth reading if nothing else on the block is read.
+ */
+interface Props {
+  decisions: EngineeringDecision[];
+  label?: string;
+  class?: string;
+}
+
+const { decisions, label = 'Key engineering decisions', class: className } = Astro.props;
+---
+
+<section class:list={['decide', className]}>
+  <h4 class="decide__label u-label">{label}</h4>
+  <ol class="decide__list">
+    {
+      decisions.map((decision, i) => (
+        <li class="decide__item">
+          <h5 class="decide__title">
+            <span class="decide__index u-data" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {decision.title}
+          </h5>
+          <p class="decide__body">{decision.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .decide { display: flex; flex-direction: column; gap: var(--space-4); }
+
+  .decide__label { color: var(--text-muted); }
+
+  .decide__list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .decide__item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-4);
+    border-top: var(--hairline) solid var(--border-hairline);
+  }
+
+  .decide__item:first-child { border-top: none; padding-top: 0; }
+
+  .decide__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-size: var(--fs-body);
+    font-weight: var(--wt-semi);
+    letter-spacing: var(--tr-heading);
+    text-wrap: balance;
+  }
+
+  .decide__index { font-size: var(--fs-micro); color: var(--signal); }
+
+  .decide__body {
+    max-width: var(--measure);
+    color: var(--text-secondary);
+    line-height: var(--lh-prose);
+  }
+
+  @media (min-width: 52rem) {
+    .decide__item {
+      grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .decide__title { display: block; }
+    .decide__index { display: block; margin-bottom: var(--space-2); }
+  }
+</style>

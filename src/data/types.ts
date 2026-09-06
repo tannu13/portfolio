@@ -50,13 +50,19 @@ export interface DeepDiveSection {
   body: string[];
 }
 
+/** One numbered decision: a short title and the reasoning behind it. */
+export interface EngineeringDecision {
+  title: string;
+  body: string;
+}
+
 export interface Project {
   id: string;
   index: string;
   title: string;
   description: string;
   technologies: string[];
-  concepts: string[];
+  decisions: EngineeringDecision[];
   /** null until the deployment exists — the UI shows a pending marker
       rather than a link that goes nowhere. */
   demoUrl: string | null;

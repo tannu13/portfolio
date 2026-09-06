@@ -521,7 +521,6 @@ const agentEdges = [
           title="Event-Driven Perpetual Futures Matching Engine"
           description="A high-performance, fault-tolerant perpetual futures platform built around an in-memory matching engine and a decoupled, event-driven microservice architecture."
           technologies={['TypeScript', 'Node.js', 'Redis', 'Redis Streams', 'PostgreSQL', 'Docker']}
-          concepts={['In-memory matching', 'Event-driven architecture', 'Idempotent consumers', 'Fault tolerance', 'High throughput']}
           links={[
             { label: 'Live demo', href: '#', icon: 'arrow-right', variant: 'primary', status: 'planned' },
             { label: 'GitHub', href: '#', icon: 'github', external: true },
@@ -533,11 +532,11 @@ const agentEdges = [
             edges={engineEdges}
             legend={false}
           />
-          <Disclosure slot="deep-dive" summary="Technical deep dive" hint="6 sections">
+          <Disclosure slot="deep-dive" summary="Technical deep dive" hint="4 sections">
             <div class="prose">
               <p>
-                Expanded content lives here on the same page: architecture, order lifecycle,
-                event flow, persistence, failure handling and trade-offs.
+                Expanded content lives here on the same page: architecture, determinism,
+                failure and recovery, and trade-offs.
               </p>
             </div>
           </Disclosure>

@@ -24,13 +24,27 @@ export const projects: Project[] = [
       "Kubernetes",
       "LLMs",
     ],
-    concepts: [
-      "Agent loop",
-      "LLM tool calling",
-      "Sub-agent orchestration",
-      "Workspace isolation",
-      "Leased job queue",
-      "Token streaming",
+    decisions: [
+      {
+        title: "Isolated Kubernetes workspace per conversation",
+        body: "Each conversation gets its own Kubernetes pod with a shared PVC, keeping generated project state isolated while allowing the pod to be recreated independently of its lifecycle.",
+      },
+      {
+        title: "Asynchronous agent execution",
+        body: "User messages are persisted first and agent work is queued through Redis, so a long-running coding task isn't tied to the HTTP request or browser connection.",
+      },
+      {
+        title: "Separate agent and app-runner processes",
+        body: "The agent is responsible for reasoning and editing files; a dedicated app-runner container owns dependency installation and the development server. Both operate on the same shared workspace.",
+      },
+      {
+        title: "Persistent state outside the workspace",
+        body: "Conversation history lives in Postgres and chat history is backed up to S3-compatible storage, allowing the system to recreate a failed pod without losing the conversation.",
+      },
+      {
+        title: "Sub-agents work in isolated Git worktrees",
+        body: "Sub-agents can work in parallel without modifying the primary workspace directly. Their changes are returned as diff artifacts that the main agent can selectively apply.",
+      },
     ],
     demoUrl: null,
     githubUrl: "https://github.com/tannu13/loveable-clone",
@@ -110,54 +124,30 @@ export const projects: Project[] = [
       {
         title: "Architecture",
         body: [
-          "A prompt enters through the session API, which owns the conversation and nothing else. The work is queued in Redis rather than handled inline, because a coding turn takes minutes, not milliseconds.",
-          "A worker leases the job and runs the agent loop: send the conversation and the tool schema to the model, receive a tool call, execute it against the session’s workspace, append the result, repeat until the model stops asking. Token and tool events stream back to the browser as they happen.",
-          "The workspace is a pod in Kubernetes holding the project files, a package manager and a dev server. Its preview is exposed on a per-session URL, so what the user sees is the code actually running, not a re-render of it.",
+          "A user message is persisted by the backend and pushed onto a Redis queue. An agent worker picks up the job, loads the conversation from Postgres, and executes the agent loop inside the conversation's Kubernetes workspace.",
+          "The workspace contains separate agent and app-runner containers sharing a PVC. The agent edits the project while the app-runner owns the development server and exposes the generated application through Kubernetes Service and Ingress. Progress flows through Redis Pub/Sub → backend → WebSocket → browser.",
         ],
       },
       {
-        title: "Key engineering decisions",
+        title: "Reliability & Recovery",
         body: [
-          "The model never touches the filesystem directly. Every effect goes through a named tool with a typed schema — read, write, list, run — so the blast radius of a bad generation is exactly what those tools allow.",
-          "One workspace per session, isolated at the pod boundary. Generated code is untrusted code, and the isolation boundary is the one the platform already has.",
-          "Long work is queued, not awaited. The request that starts a turn returns immediately; everything after that arrives over the stream, so a browser tab is never the thing holding the work open.",
-          "Sub-agents get their own context. A focused task — find where this is configured, summarise this directory — runs as a fresh conversation and returns only its answer, so the parent’s context stays about the parent’s problem.",
+          "The system persists the conversation before agent execution begins, so a failed agent run doesn't lose the user's request.",
+          "Conversation state is stored in Postgres rather than process memory, while chat history is also backed up to S3-compatible storage. If a workspace pod fails, it can be recreated and the conversation restored from persistent state rather than relying on the previous pod surviving.",
         ],
       },
       {
-        title: "Failure and recovery",
+        title: "Performance & Scalability",
         body: [
-          "Jobs are leased, not consumed. A worker that dies mid-turn loses its lease and the job returns to the queue rather than disappearing with the process.",
-          "The conversation is the state, so a retry resumes from the last completed tool call instead of starting the turn again.",
-          "A model call that fails, times out, or returns arguments that do not fit the schema is handed back to the model as a tool error. Recovering from its own mistake is something the model is good at; throwing at the boundary is not.",
-          "Workspaces carry TTLs and resource limits and hold no outbound credentials, so an abandoned session expires on its own and a runaway process is bounded by the pod rather than by the cluster.",
-          "A disconnected browser does not cancel a turn. Reconnecting replays the events it missed.",
-        ],
-      },
-      {
-        title: "Performance",
-        body: [
-          "Responses stream token by token, so the first useful output appears in about the time the model takes to start talking rather than the time it takes to finish.",
-          "Context is managed rather than accumulated: superseded tool output is compacted out of the conversation, which keeps both latency and cost roughly flat as a session gets long.",
-          "Workspace pods are pre-warmed, because cold-starting a container and installing dependencies is the slowest thing in a first turn.",
-          "File reads are ranged and directory listings are depth-limited, so a large repository does not turn into a large prompt.",
+          "Long-running agent work is asynchronous, allowing the API and WebSocket layers to remain independent of the execution time of a coding task.",
+          "The app-runner is separated from the agent so generated applications can restart independently when files change. Sub-agents can also work on isolated Git worktrees, allowing focused tasks to execute without competing over the primary workspace.",
         ],
       },
       {
         title: "Trade-offs",
         body: [
-          "A pod per session buys strong isolation and pays for idle capacity. Pre-warming makes it faster and more expensive still.",
-          "Tool calling is slower than letting the model write a script and running it, and worth it: a typed tool surface is something you can reason about, and a shell is not.",
-          "Compaction trades fidelity for room. Anything summarised away is gone, so what gets compacted is a product decision, not a technical one.",
-          "Streaming makes the interface feel immediate and makes every failure partial. The client has to be able to render a turn that stopped halfway.",
-        ],
-      },
-      {
-        title: "Implementation notes",
-        body: [
-          "React and TypeScript on the front end; the session API runs on Bun with Express-compatible routing; Redis carries both the queue and the event streams.",
-          "Workspace lifecycle is driven through the Kubernetes API — create, expose, expire — rather than through a bespoke scheduler.",
-          "The agent loop is a plain state machine over the message list, which keeps it testable without a model in the loop.",
+          "A dedicated Kubernetes workspace per conversation provides strong isolation but introduces significant resource overhead.",
+          "The shared PVC simplifies communication between the agent and app-runner, but also means workspace lifecycle and storage have to be managed separately from pod lifecycle.",
+          "The architecture also deliberately keeps some production concerns open: authorization, secrets management, autoscaling, resource limits, retry/dead-letter handling, and multi-replica WebSocket scaling remain production-readiness work.",
         ],
       },
     ],
@@ -176,13 +166,27 @@ export const projects: Project[] = [
       "PostgreSQL",
       "Docker",
     ],
-    concepts: [
-      "In-memory matching",
-      "Event-driven architecture",
-      "Single-writer ordering",
-      "Idempotent consumers",
-      "Replay-based recovery",
-      "High-throughput processing",
+    decisions: [
+      {
+        title: "Single-instance deterministic matching",
+        body: "All market tickers are processed sequentially through the matching engine so that order execution and balance-dependent decisions replay in exactly the same order after a failure.",
+      },
+      {
+        title: "In-memory matching state",
+        body: "The matching engine keeps the trading state in memory to achieve the low-latency execution path, while the database remains a durable record of transactions and positions.",
+      },
+      {
+        title: "Application-level idempotency",
+        body: "Each originating request receives a correlation ID. Consumers use that ID as the idempotency key rather than relying on the Redis Stream message ID, allowing retries of the same user action to remain safe.",
+      },
+      {
+        title: "Snapshot + stream replay recovery",
+        body: "The engine periodically snapshots its state to S3 and reconstructs the latest state by replaying Redis Stream events after the snapshot.",
+      },
+      {
+        title: "Decoupled execution and persistence",
+        body: "The matching engine publishes results to downstream streams while independent consumers handle database persistence and WebSocket updates, preventing those operations from blocking matching.",
+      },
     ],
     demoUrl: null,
     githubUrl: "https://github.com/tannu13/perp-v2",
@@ -271,53 +275,29 @@ export const projects: Project[] = [
       {
         title: "Architecture",
         body: [
-          "Services communicate only through Redis Streams. An order enters through the REST API, which validates it and checks margin, then appends an ORDER_CREATED event to the order stream. The API’s job ends there.",
-          "The matching engine is the single consumer of that stream. It holds the book entirely in memory — price levels in a sorted structure, orders within a level in FIFO order — so matching is a walk over pointers rather than a query. Fills are published to a second stream, from which independent consumers persist trades to PostgreSQL, update positions, and push market data to connected clients.",
-          "Nothing downstream can block a match, and nothing upstream needs to know who is listening.",
+          "The API backend validates authenticated requests and pushes transactions into Redis Streams. The matching engine consumes those events and maintains the exchange state entirely in memory, handling order matching, margin verification, position tracking, and PnL calculations.",
+          "Execution results are consumed independently by the DB writer and WebSocket server, keeping persistence and client updates off the matching path. The services can run as Bun processes or as containerized workloads on Kubernetes.",
         ],
       },
       {
-        title: "Key engineering decisions",
+        title: "Determinism & Idempotency",
         body: [
-          "One writer per book. Because the engine is the only consumer of one stream, order arrival has a total order and matching is deterministic. Sequencing is delegated to the log, which removes locks from the hot path and consensus from the system entirely.",
-          "The book lives in memory; PostgreSQL is a record of what happened, never a participant in deciding what happens next.",
-          "Every consumer is idempotent and keyed by event id. A stream gives at-least-once delivery, so duplicate handling is a requirement of every consumer rather than a property of the transport.",
-          "Rejections are events. A failed margin check produces ORDER_REJECTED rather than an exception at the API boundary, so the client and the audit trail see the same history.",
+          "The engine intentionally processes all tickers sequentially. This avoids distributed coordination around shared user balances and, more importantly, guarantees that replaying the same event sequence produces the same decisions.",
+          "For persistence, the system generates a correlation ID at the origin of a user action. The DB writer uses that ID as a unique key inside a database transaction, preventing duplicate mutations even when the same logical operation is delivered multiple times.",
         ],
       },
       {
-        title: "Failure and recovery",
+        title: "Failure & Recovery",
         body: [
-          "Consumers acknowledge after their write commits, not on receipt. A process that dies mid-write replays its message instead of losing it.",
-          "A restarted engine reads the stream from its last acknowledged offset, rebuilds the book in memory, and refuses to match until it has caught up. Recovery is replay, not repair.",
-          "Unacknowledged entries in a consumer group are claimed after a visibility timeout, so a dead worker’s backlog is picked up by a live one rather than stranded.",
-          "Because the log is the source of truth, a corrupted projection can be dropped and rebuilt rather than reconciled.",
+          "The matching engine periodically serializes its state and stores immutable snapshots in S3. After a restart, it loads the latest snapshot and replays the Redis Stream from the corresponding offset to reconstruct the state.",
+          "This gives the system two recovery mechanisms working together: snapshots reduce replay time, while the event stream provides the missing history after the snapshot.",
         ],
       },
       {
-        title: "Performance",
+        title: "Performance & Trade-offs",
         body: [
-          "A limit order costs a lookup of a price level and a walk along a queue. There is no database round trip on the matching path.",
-          "Persistence is asynchronous and batched. A slow write shows up as depth in the fill stream, not as latency on a match.",
-          "Streams are trimmed to a bounded length, so Redis memory stays flat while the durable history accumulates in PostgreSQL.",
-          "Events carry the minimum a consumer needs to act, which keeps serialisation off the critical path as fan-out grows.",
-        ],
-      },
-      {
-        title: "Trade-offs",
-        body: [
-          "Determinism costs horizontal scale. One writer per book bounds an instrument to a single core; the system scales per market, not per instance.",
-          "At-least-once delivery pushes correctness into every consumer. Idempotency is not an optimisation here, it is the contract.",
-          "In-memory state makes recovery time proportional to replay length. Snapshots bound it, at the cost of one more thing that has to be right.",
-          "Eventual consistency is visible to the product: a fill exists before it is durable, so the interface has to represent a state the database has not caught up to yet.",
-        ],
-      },
-      {
-        title: "Implementation notes",
-        body: [
-          "TypeScript throughout. The API and the engine are separate Node processes with no shared runtime state — the only thing between them is the log.",
-          "Each service ships as a container; a single compose file brings up Redis, PostgreSQL and the services for a local run.",
-          "Event payloads are versioned and consumers ignore fields they do not know, so a producer can add information without a coordinated deploy.",
+          "Keeping the matching state in memory avoids database round trips on the critical execution path, with the system targeting sub-millisecond transaction execution.",
+          "The trade-off is deliberate: a single sequential engine limits horizontal scaling of the matching path. The design prioritizes deterministic execution and financial consistency over independently scaling multiple matching-engine instances.",
         ],
       },
     ],

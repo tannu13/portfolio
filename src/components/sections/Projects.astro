@@ -2,6 +2,7 @@
 import Section from '../templates/Section.astro';
 import ProjectBlock from '../organisms/ProjectBlock.astro';
 import ArchitectureDiagram from '../organisms/ArchitectureDiagram.astro';
+import DecisionList from '../organisms/DecisionList.astro';
 import DeepDive from '../organisms/DeepDive.astro';
 import Reveal from '../atoms/Reveal.astro';
 import type { RowLink } from '../molecules/LinkRow.astro';
@@ -43,7 +44,6 @@ const linksFor = (project: (typeof projects)[number]): RowLink[] => {
             title={project.title}
             description={project.description}
             technologies={project.technologies}
-            concepts={project.concepts}
             links={linksFor(project)}
             pending={!project.demoUrl}
           >
@@ -53,6 +53,7 @@ const linksFor = (project: (typeof projects)[number]): RowLink[] => {
               edges={project.architecture.edges}
               caption={project.architecture.caption}
             />
+            <DecisionList slot="decisions" decisions={project.decisions} />
             <DeepDive slot="deep-dive" sections={project.deepDive} />
           </ProjectBlock>
         </Reveal>
