@@ -1,7 +1,7 @@
 ---
 import ThemeToggle from '../atoms/ThemeToggle.astro';
 import Button from '../atoms/Button.astro';
-import Icon from '../atoms/Icon.astro';
+import Icon, { type IconName } from '../atoms/Icon.astro';
 
 /**
  * Navbar — sticky, compact, and always showing where you are. The
@@ -13,11 +13,20 @@ export interface NavItem {
   href: string;
 }
 
+/** The one button in the bar. It is the resume on the portfolio; on a
+    page that sits beside the portfolio it is the way back. */
+export interface NavAction {
+  label: string;
+  href: string;
+  icon?: IconName;
+  external?: boolean;
+}
+
 interface Props {
   items: NavItem[];
   brand?: string;
   brandHref?: string;
-  resumeHref?: string;
+  action?: NavAction;
   class?: string;
 }
 
@@ -25,7 +34,7 @@ const {
   items,
   brand = 'TP',
   brandHref = '#home',
-  resumeHref = '/resume.pdf',
+  action = { label: 'Resume', href: '/resume.pdf', icon: 'download', external: true },
   class: className,
 } = Astro.props;
 ---
@@ -52,8 +61,15 @@ const {
     </nav>
 
     <div class="nav__actions">
-      <Button href={resumeHref} variant="secondary" size="sm" icon="download" class="nav__resume" external>
-        Resume
+      <Button
+        href={action.href}
+        variant="secondary"
+        size="sm"
+        icon={action.icon}
+        class="nav__resume"
+        external={action.external}
+      >
+        {action.label}
       </Button>
       <ThemeToggle />
       <button
@@ -83,7 +99,13 @@ const {
         ))
       }
       <li>
-        <a class="nav__panel-link" href={resumeHref} target="_blank">Resume</a>
+        <a
+          class="nav__panel-link"
+          href={action.href}
+          {...action.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+        >
+          {action.label}
+        </a>
       </li>
     </ul>
   </div>

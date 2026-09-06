@@ -17,7 +17,7 @@ const year = new Date().getFullYear();
     items={navItems}
     brand={site.monogram}
     brandHref="#home"
-    resumeHref={site.resumeUrl}
+    action={{ label: 'Resume', href: site.resumeUrl, icon: 'download', external: true }}
   />
 
   <main id="main">

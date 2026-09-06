@@ -61,7 +61,14 @@ import { site, heroFlow } from '../../data/site';
 </section>
 
 <style>
-  .hero { padding-block: clamp(3rem, 2rem + 6vw, 6.5rem) 0; }
+  /* The hero opens on the raised surface so it separates from the
+     projects section below it — the same alternation the section
+     template applies, extended to the one section that isn't one. */
+  .hero {
+    padding-block: clamp(3rem, 2rem + 6vw, 6.5rem);
+    background-color: var(--surface-raised);
+    border-bottom: var(--hairline) solid var(--border-hairline);
+  }
 
   .hero__inner {
     display: grid;

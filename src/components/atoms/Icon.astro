@@ -6,7 +6,7 @@
 export type IconName =
   | 'arrow-right' | 'arrow-down' | 'external' | 'download' | 'github'
   | 'linkedin' | 'mail' | 'plus' | 'minus' | 'sun' | 'moon' | 'menu'
-  | 'close' | 'check';
+  | 'close' | 'check' | 'grid';
 
 interface Props {
   name: IconName;
@@ -36,6 +36,7 @@ const paths: Record<IconName, string> = {
   menu: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
   close: '<path d="M4 4l8 8M12 4l-8 8"/>',
   check: '<path d="m3 8.5 3.5 3.5L13 4.5"/>',
+  grid: '<rect x="2.25" y="2.25" width="11.5" height="11.5" rx="1.5"/><path d="M8 2.25v11.5M2.25 8h11.5"/>',
 };
 ---
 

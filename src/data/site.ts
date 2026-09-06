@@ -25,6 +25,9 @@ export const site = {
   linkedinUrl: `https://www.linkedin.com/in/${LINKEDIN_SLUG}/`,
   linkedinHandle: `in/${LINKEDIN_SLUG}`,
   resumeUrl: "/resume.pdf",
+  /** The system this page is built from, published alongside it: the
+      tokens and components are as much the work as the page is. */
+  designSystemUrl: "/design-system",
   contactPrompt: "Have an interesting engineering problem? Let's talk.",
   seo: {
     title: "Tanuj Pant — Full-Stack Engineer · Distributed Systems · AI",

@@ -3,7 +3,7 @@ import Icon, { type IconName } from '../atoms/Icon.astro';
 
 /**
  * ContactBlock — the last thing on the page. One line of intent, one
- * unmissable address, and the three links a reviewer will look for.
+ * unmissable address, and the links a reviewer will look for.
  */
 export interface ContactLink {
   label: string;
@@ -160,7 +160,7 @@ const { prompt, email, links, class: className } = Astro.props;
   .contact__link-value { margin-left: auto; font-size: var(--fs-sm); color: var(--text-muted); }
 
   @media (min-width: 52rem) {
-    .contact__links { grid-template-columns: repeat(3, 1fr); border-top: none; }
+    .contact__links { grid-template-columns: repeat(2, 1fr); border-top: none; }
     .contact__link {
       flex-direction: column;
       align-items: flex-start;
@@ -171,6 +171,11 @@ const { prompt, email, links, class: className } = Astro.props;
     }
     .contact__link-value { margin-left: 0; }
     .contact__link:hover { padding-left: var(--space-2); }
+  }
+
+  /* Four across only once each column can still hold a full handle. */
+  @media (min-width: 64rem) {
+    .contact__links { grid-template-columns: repeat(4, 1fr); }
   }
 </style>
 

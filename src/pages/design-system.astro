@@ -121,12 +121,17 @@ const agentEdges = [
   description="The visual system behind the portfolio: tokens, typography, colour roles, the architecture-diagram language, and every component that builds on them."
   noIndex
 >
-  <Navbar items={navItems} brand="DS" brandHref="#top" resumeHref="/" />
+  <Navbar
+    items={navItems}
+    brand="DS"
+    brandHref="#top"
+    action={{ label: 'Portfolio', href: '/', icon: 'arrow-right' }}
+  />
 
   <main id="main">
     <!-- ============================ MASTHEAD ==================== -->
     <header class="masthead u-container" id="top">
-      <Eyebrow tone="signal">Visual design system</Eyebrow>
+      <Eyebrow tone="signal">Atomic design system</Eyebrow>
       <h1 class="masthead__title">Instrument</h1>
       <p class="masthead__lede">
         The portfolio is built to read like measuring equipment: a vellum-grey substrate,
@@ -149,6 +154,7 @@ const agentEdges = [
       eyebrow="Foundations"
       title="Tokens"
       lede="Two layers. Primitives hold raw values; semantic tokens describe intent. Components only ever reference the semantic layer, which is why theming is a remap and not a rewrite."
+      tone="raised"
     >
       <Specimen
         name="Neutral ramp"
