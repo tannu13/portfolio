@@ -188,7 +188,7 @@ export const projects: Project[] = [
         body: "The matching engine publishes results to downstream streams while independent consumers handle database persistence and WebSocket updates, preventing those operations from blocking matching.",
       },
     ],
-    demoUrl: null,
+    demoUrl: "https://web.perps.tanujpant.com/",
     githubUrl: "https://github.com/tannu13/perp-v2",
     architecture: {
       stages: [
